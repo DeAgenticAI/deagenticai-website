@@ -30,17 +30,24 @@ get_header();
             '' !== $payload['definition'] &&
             false !== stripos($payload['definition'], $semantic_triple)
         );
+        $overview_content = trim((string) get_post_field('post_content', $page_id));
+        $has_overview_content = '' !== $overview_content;
+        if ($has_overview_content && function_exists('aura_is_marketing_seed_stub_content')) {
+            $has_overview_content = !aura_is_marketing_seed_stub_content($overview_content);
+        }
         $has_how_steps = !empty($payload['how_steps']);
         $has_why_it_matters = '' !== $payload['why_it_matters'];
         $has_faqs = !empty($payload['faqs']);
         $has_related_entities = !empty($payload['related_entities']);
         $has_further_reading = !empty($payload['further_reading']);
-        $jump_links = array(
-            array(
+        $jump_links = array();
+
+        if ($has_overview_content) {
+            $jump_links[] = array(
                 'id' => 'entry-overview',
                 'label' => __('Overview', 'aura'),
-            ),
-        );
+            );
+        }
 
         if ($has_how_steps) {
             $jump_links[] = array(
@@ -122,7 +129,7 @@ get_header();
                             <div class="marketing-visual-glow"></div>
                             <div class="marketing-visual-chip"><?php esc_html_e('Definition Surface', 'aura'); ?></div>
                             <strong><?php the_title(); ?></strong>
-                            <p><?php esc_html_e('Use the featured image for a diagram, annotated concept visual, or branded system graphic.', 'aura'); ?></p>
+                            <p><?php esc_html_e('Key concepts, control boundaries, and context for this term in the DeAgenticAI architecture.', 'aura'); ?></p>
                         </div>
                     <?php endif; ?>
                 </div>
@@ -143,14 +150,16 @@ get_header();
 
             <div class="marketing-content-layout">
                 <div class="marketing-main-column">
-                    <section id="entry-overview" class="marketing-section-card marketing-prose-card">
-                        <div class="marketing-section-heading">
-                            <h2><?php esc_html_e('Overview', 'aura'); ?></h2>
-                        </div>
-                        <div class="marketing-prose">
-                            <?php the_content(); ?>
-                        </div>
-                    </section>
+                    <?php if ($has_overview_content) : ?>
+                        <section id="entry-overview" class="marketing-section-card marketing-prose-card">
+                            <div class="marketing-section-heading">
+                                <h2><?php esc_html_e('Overview', 'aura'); ?></h2>
+                            </div>
+                            <div class="marketing-prose">
+                                <?php the_content(); ?>
+                            </div>
+                        </section>
+                    <?php endif; ?>
 
                     <?php if ($has_how_steps) : ?>
                         <section id="entry-how-it-works" class="marketing-section-card">

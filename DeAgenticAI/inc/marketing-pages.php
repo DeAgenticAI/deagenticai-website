@@ -351,8 +351,8 @@ function aura_get_solution_entry_payload($page_id = 0) {
         'secondary_cta_label' => aura_get_marketing_page_meta($page_id, '_aura_solution_secondary_cta_label', __('View Ecosystem', 'aura')),
         'secondary_cta_url' => aura_get_marketing_page_meta($page_id, '_aura_solution_secondary_cta_url', home_url('/ecosystem')),
         'implementation_steps' => !empty($steps) ? $steps : $default_steps,
-        'case_study_title' => aura_get_marketing_page_meta($page_id, '_aura_solution_case_study_title', __('Simulation or Design Partner Placeholder', 'aura')),
-        'case_study_body' => aura_get_marketing_page_meta($page_id, '_aura_solution_case_study_body', __('Use this block for a deployment walkthrough, simulation summary, or partner case study once proof material is available.', 'aura')),
+        'case_study_title' => aura_get_marketing_page_meta($page_id, '_aura_solution_case_study_title', __('Implementation Case Study', 'aura')),
+        'case_study_body' => aura_get_marketing_page_meta($page_id, '_aura_solution_case_study_body', __('Operational outcomes, governance decisions, and measurable impact from a real-world deployment pattern.', 'aura')),
         'glossary_links' => !empty($glossary_links) ? $glossary_links : $default_glossary_links,
         'resource_links' => !empty($resource_links) ? $resource_links : $default_resource_links,
         'compare_links' => !empty($compare_links) ? $compare_links : $default_compare_links,
@@ -370,22 +370,6 @@ function aura_get_learn_faq_topic_payload($page_id = 0) {
     $page_id = $page_id ? (int) $page_id : get_the_ID();
 
     $faqs = aura_get_marketing_page_rows($page_id, '_aura_learn_faq_rows', array('question', 'answer'));
-    if (empty($faqs)) {
-        $faqs = array(
-            array(
-                'question' => __('What problem should this FAQ topic solve?', 'aura'),
-                'answer' => __('Each topic should resolve one implementation pain point with direct, actionable, and testable guidance.', 'aura'),
-            ),
-            array(
-                'question' => __('How detailed should answers be for AEO?', 'aura'),
-                'answer' => __('Keep answers concise but specific: state the decision boundary, recommended action, and expected operational outcome.', 'aura'),
-            ),
-            array(
-                'question' => __('How should this topic connect to the wider site graph?', 'aura'),
-                'answer' => __('Link back to glossary entities, pillar pages, and relevant compare pages to preserve semantic continuity for crawlers.', 'aura'),
-            ),
-        );
-    }
 
     return array(
         'faqs' => $faqs,
@@ -1587,6 +1571,61 @@ function aura_get_marketing_seed_pages() {
 }
 
 /**
+ * Normalize page body content for scaffold comparisons.
+ *
+ * @param string $content Raw content.
+ * @return string
+ */
+function aura_normalize_marketing_seed_content($content) {
+    $plain_text = wp_strip_all_tags((string) $content);
+    $plain_text = preg_replace('/\s+/', ' ', $plain_text);
+    return is_string($plain_text) ? trim($plain_text) : '';
+}
+
+/**
+ * Detect whether body content is unchanged editorial scaffold content.
+ *
+ * @param string $content Raw post content.
+ * @return bool
+ */
+function aura_is_marketing_seed_stub_content($content) {
+    $normalized = aura_normalize_marketing_seed_content($content);
+    if ('' === $normalized) {
+        return false;
+    }
+
+    $seed_pages = aura_get_marketing_seed_pages();
+    foreach ($seed_pages as $group) {
+        if (!is_array($group)) {
+            continue;
+        }
+
+        foreach ($group as $seed_page) {
+            if (!is_array($seed_page) || empty($seed_page['content'])) {
+                continue;
+            }
+
+            if ($normalized === aura_normalize_marketing_seed_content((string) $seed_page['content'])) {
+                return true;
+            }
+        }
+    }
+
+    $legacy_stubs = array(
+        'Use this hub for topic-specific FAQ pages under /learn/faq/. Keep each topic page focused, concrete, and schema-ready.',
+        'Replace this sample with production FAQ topics. Keep answers concise and implementation-specific.',
+    );
+
+    foreach ($legacy_stubs as $stub) {
+        if ($normalized === aura_normalize_marketing_seed_content($stub)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+/**
  * Seed default child pages for a marketing hub.
  *
  * @param int    $parent_id Parent page ID.
@@ -1713,7 +1752,7 @@ function aura_seed_learn_faq_pages($learn_page_id) {
             'post_status' => 'publish',
             'post_parent' => $learn_page_id,
             'post_excerpt' => __('Answer-engine oriented implementation FAQs for governed agent infrastructure topics.', 'aura'),
-            'post_content' => '<p>' . esc_html__('Use this hub for topic-specific FAQ pages under /learn/faq/. Keep each topic page focused, concrete, and schema-ready.', 'aura') . '</p>',
+            'post_content' => '<p>' . esc_html__('Topic-specific implementation FAQs for governed agent infrastructure, organized for clear retrieval and decision support.', 'aura') . '</p>',
         ));
 
         if ($faq_page_id) {

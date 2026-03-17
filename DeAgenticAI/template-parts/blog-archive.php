@@ -83,7 +83,7 @@ $regular_query = new WP_Query($regular_query_args);
                 <article class="blog-featured-card">
                     <a href="<?php echo esc_url($featured_link); ?>" class="blog-featured-media">
                         <?php if ($featured_image) : ?>
-                            <img src="<?php echo esc_url($featured_image); ?>" alt="<?php echo esc_attr($featured_title); ?>">
+                            <img src="<?php echo esc_url($featured_image); ?>" alt="<?php echo esc_attr($featured_title); ?>" fetchpriority="high" decoding="async">
                         <?php else : ?>
                             <div class="blog-image-fallback"></div>
                         <?php endif; ?>
@@ -146,7 +146,7 @@ $regular_query = new WP_Query($regular_query_args);
                     <article class="blog-card reveal-up" style="transition-delay: <?php echo esc_attr(number_format((float) (0.16 + ($index * 0.03)), 2)); ?>s;">
                         <a href="<?php the_permalink(); ?>" class="blog-card-media">
                             <?php if ($post_image) : ?>
-                                <img src="<?php echo esc_url($post_image); ?>" alt="<?php the_title_attribute(); ?>">
+                                <img src="<?php echo esc_url($post_image); ?>" alt="<?php the_title_attribute(); ?>" loading="lazy" decoding="async">
                             <?php else : ?>
                                 <div class="blog-image-fallback"></div>
                             <?php endif; ?>

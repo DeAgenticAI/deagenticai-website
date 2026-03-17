@@ -16,6 +16,11 @@ get_header();
         $breadcrumbs = aura_get_marketing_breadcrumb_items($page_id);
         $lead = aura_get_marketing_page_excerpt($page_id, 36);
         $featured_image = get_the_post_thumbnail_url($page_id, 'large');
+        $topic_intro_content = trim((string) get_post_field('post_content', $page_id));
+        $has_topic_intro = '' !== $topic_intro_content;
+        if ($has_topic_intro && function_exists('aura_is_marketing_seed_stub_content')) {
+            $has_topic_intro = !aura_is_marketing_seed_stub_content($topic_intro_content);
+        }
         ?>
 
         <div class="container marketing-shell">
@@ -49,25 +54,27 @@ get_header();
                 <div class="marketing-entry-visual">
                     <?php if ($featured_image) : ?>
                         <figure class="marketing-featured-media">
-                            <img src="<?php echo esc_url($featured_image); ?>" alt="<?php the_title_attribute(); ?>">
+                            <img src="<?php echo esc_url($featured_image); ?>" alt="<?php the_title_attribute(); ?>" fetchpriority="high" decoding="async">
                         </figure>
                     <?php else : ?>
                         <div class="marketing-visual-panel">
                             <div class="marketing-visual-glow"></div>
                             <div class="marketing-visual-chip"><?php esc_html_e('AEO Surface', 'aura'); ?></div>
                             <strong><?php esc_html_e('Structured answers for high-intent implementation questions', 'aura'); ?></strong>
-                            <p><?php esc_html_e('Use this template for concise technical answers with FAQPage schema output.', 'aura'); ?></p>
+                            <p><?php esc_html_e('Clear, implementation-focused answers designed for fast retrieval and decision support.', 'aura'); ?></p>
                         </div>
                     <?php endif; ?>
                 </div>
             </section>
 
             <div class="marketing-main-column">
-                <section class="marketing-section-card marketing-prose-card">
-                    <div class="marketing-prose">
-                        <?php the_content(); ?>
-                    </div>
-                </section>
+                <?php if ($has_topic_intro) : ?>
+                    <section class="marketing-section-card marketing-prose-card">
+                        <div class="marketing-prose">
+                            <?php the_content(); ?>
+                        </div>
+                    </section>
+                <?php endif; ?>
 
                 <?php if (!empty($payload['faqs'])) : ?>
                     <section class="marketing-section-card">
@@ -82,12 +89,6 @@ get_header();
                                     <p><?php echo esc_html($faq['answer']); ?></p>
                                 </article>
                             <?php endforeach; ?>
-                        </div>
-                    </section>
-                <?php else : ?>
-                    <section class="marketing-section-card">
-                        <div class="marketing-empty-state" style="margin-top: 0;">
-                            <p><?php esc_html_e('Add at least 3 FAQ rows in the page settings metabox to activate FAQPage schema output for this topic.', 'aura'); ?></p>
                         </div>
                     </section>
                 <?php endif; ?>

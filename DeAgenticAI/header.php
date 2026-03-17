@@ -12,6 +12,8 @@
     <meta charset="<?php bloginfo('charset'); ?>">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="profile" href="https://gmpg.org/xfn/11">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <?php wp_head(); ?>
 </head>
 
@@ -42,7 +44,7 @@
                     }
                     $aura_site_name = function_exists( 'aura_get_content' ) ? aura_get_content( 'site_name', 'DeAgenticAI' ) : 'DeAgenticAI';
                     ?>
-                    <img src="<?php echo esc_url( $aura_logo_url ); ?>" alt="<?php echo esc_attr( $aura_site_name ); ?>" class="logo-image" />
+                    <img src="<?php echo esc_url( $aura_logo_url ); ?>" alt="<?php echo esc_attr( $aura_site_name ); ?>" class="logo-image" fetchpriority="high" decoding="async" />
                     <span class="logo-text"><?php echo esc_html( $aura_site_name ); ?></span>
                 </a>
 

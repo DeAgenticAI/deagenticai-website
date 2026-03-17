@@ -212,7 +212,7 @@ get_header();
 
                 <?php if ($featured_image_url) : ?>
                     <figure class="blog-post-image reveal-scale" style="transition-delay: 0.1s;">
-                        <img src="<?php echo esc_url($featured_image_url); ?>" alt="<?php the_title_attribute(); ?>">
+                        <img src="<?php echo esc_url($featured_image_url); ?>" alt="<?php the_title_attribute(); ?>" fetchpriority="high" decoding="async">
                     </figure>
                 <?php endif; ?>
 
@@ -314,7 +314,7 @@ get_header();
                             <a class="blog-related-card" href="<?php the_permalink(); ?>">
                                 <div class="blog-related-media">
                                     <?php if ($related_image) : ?>
-                                        <img src="<?php echo esc_url($related_image); ?>" alt="<?php the_title_attribute(); ?>">
+                                        <img src="<?php echo esc_url($related_image); ?>" alt="<?php the_title_attribute(); ?>" loading="lazy" decoding="async">
                                     <?php else : ?>
                                         <div class="blog-image-fallback"></div>
                                     <?php endif; ?>

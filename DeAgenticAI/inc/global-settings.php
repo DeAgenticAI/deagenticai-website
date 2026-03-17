@@ -35,6 +35,7 @@ function aura_get_content_settings() {
         'founding_year'         => '2026',
         'product_name'          => 'Agentic Control Plane',
         'service_type'          => 'AI Agent Infrastructure',
+        'social_image_url'      => '',
         'twitter_url'           => '',
         'linkedin_url'          => '',
         'github_url'            => '',
@@ -43,6 +44,14 @@ function aura_get_content_settings() {
         'waitlist_title'        => 'Shape the Control Layer for',
         'waitlist_title_accent' => 'Agentic AI',
         'waitlist_description'  => "Our early access is invite-only. Join the design partner waitlist to track DeAgenticAI's progress and shape governed autonomous execution with our team. No marketing fluff-just infrastructure updates.",
+        'waitlist_page_title'   => 'Join the Waitlist',
+        'waitlist_page_description' => 'Get early access updates and product milestones from DeAgenticAI.',
+        'about_badge'           => 'About DeAgenticAI',
+        'about_title'           => 'We Built the Missing Layer Between AI Agents and On-Chain Authority',
+        'about_lead'            => 'Autonomous AI agents are already operating on-chain. They are executing treasury strategies, interacting with DeFi protocols, and beginning to represent institutional interests in governance systems. The infrastructure they are running on - private key management, multisig governance, rule-based automation - was designed for human actors. It breaks down under every assumption that AI introduces. DeAgenticAI exists to close that gap at the infrastructure layer.',
+        'about_contact_title'   => 'Work With Us',
+        'about_contact_intro'   => 'DeAgenticAI is currently working with a select group of design partners - DAOs, Web3 funds, and RWA platform operators - who need governed autonomous execution before it is available at general access. If your organisation is evaluating infrastructure for AI agent operations, we want to hear from you.',
+        'about_contact_button_label' => 'Send Transmission',
     );
 
     $stored = get_option( 'aura_content', array() );
@@ -125,9 +134,27 @@ function aura_register_content_settings() {
 function aura_sanitize_content_settings( $input ) {
     $input = is_array( $input ) ? $input : array();
 
-    $text_fields     = array( 'site_name', 'waitlist_title', 'waitlist_title_accent', 'founding_year', 'product_name', 'service_type' );
-    $textarea_fields = array( 'footer_tagline', 'waitlist_description' );
-    $url_fields      = array( 'org_url', 'twitter_url', 'linkedin_url', 'github_url' );
+    $text_fields     = array(
+        'site_name',
+        'waitlist_title',
+        'waitlist_title_accent',
+        'founding_year',
+        'product_name',
+        'service_type',
+        'waitlist_page_title',
+        'about_badge',
+        'about_title',
+        'about_contact_title',
+        'about_contact_button_label',
+    );
+    $textarea_fields = array(
+        'footer_tagline',
+        'waitlist_description',
+        'waitlist_page_description',
+        'about_lead',
+        'about_contact_intro',
+    );
+    $url_fields      = array( 'org_url', 'social_image_url', 'twitter_url', 'linkedin_url', 'github_url' );
     $email_fields    = array( 'email_address' );
 
     $out = array();
@@ -180,189 +207,6 @@ function aura_render_content_settings_page() {
         return;
     }
 
-    $s = aura_get_content_settings();
-    ?>
-    <div class="wrap">
-        <h1><?php esc_html_e( 'Aura Content Settings', 'aura' ); ?></h1>
-        <p><?php esc_html_e( 'Manage global site copy, social links, and footer settings. These apply sitewide.', 'aura' ); ?></p>
-
-        <form method="post" action="options.php">
-            <?php settings_fields( 'aura_content_settings_group' ); ?>
-
-            <h2><?php esc_html_e( 'Brand', 'aura' ); ?></h2>
-            <table class="form-table" role="presentation">
-                <tr>
-                    <th scope="row">
-                        <label for="aura-site-name"><?php esc_html_e( 'Site / Brand Name', 'aura' ); ?></label>
-                    </th>
-                    <td>
-                        <input id="aura-site-name" class="regular-text" type="text"
-                               name="aura_content[site_name]"
-                               value="<?php echo esc_attr( $s['site_name'] ); ?>">
-                        <p class="description">
-                            <?php esc_html_e( 'Used in logo alt text, footer, and schema markup.', 'aura' ); ?>
-                        </p>
-                    </td>
-                </tr>
-                <tr>
-                    <th scope="row">
-                        <label for="aura-org-url"><?php esc_html_e( 'Organisation URL', 'aura' ); ?></label>
-                    </th>
-                    <td>
-                        <input id="aura-org-url" class="regular-text" type="url"
-                               name="aura_content[org_url]"
-                               value="<?php echo esc_attr( $s['org_url'] ); ?>">
-                        <p class="description">
-                            <?php esc_html_e( 'Canonical URL used in JSON-LD Organisation schema. Leave blank to use the WordPress site URL.', 'aura' ); ?>
-                        </p>
-                    </td>
-                </tr>
-                <tr>
-                    <th scope="row">
-                        <label for="aura-founding-year"><?php esc_html_e( 'Founding Year', 'aura' ); ?></label>
-                    </th>
-                    <td>
-                        <input id="aura-founding-year" class="small-text" type="text"
-                               name="aura_content[founding_year]"
-                               value="<?php echo esc_attr( $s['founding_year'] ); ?>"
-                               maxlength="4">
-                        <p class="description">
-                            <?php esc_html_e( 'Used for Organization schema foundingDate. Example: 2026.', 'aura' ); ?>
-                        </p>
-                    </td>
-                </tr>
-                <tr>
-                    <th scope="row">
-                        <label for="aura-product-name"><?php esc_html_e( 'Primary Product Name', 'aura' ); ?></label>
-                    </th>
-                    <td>
-                        <input id="aura-product-name" class="regular-text" type="text"
-                               name="aura_content[product_name]"
-                               value="<?php echo esc_attr( $s['product_name'] ); ?>">
-                        <p class="description">
-                            <?php esc_html_e( 'Used in Organization schema product field.', 'aura' ); ?>
-                        </p>
-                    </td>
-                </tr>
-                <tr>
-                    <th scope="row">
-                        <label for="aura-service-type"><?php esc_html_e( 'Service Type', 'aura' ); ?></label>
-                    </th>
-                    <td>
-                        <input id="aura-service-type" class="regular-text" type="text"
-                               name="aura_content[service_type]"
-                               value="<?php echo esc_attr( $s['service_type'] ); ?>">
-                        <p class="description">
-                            <?php esc_html_e( 'Used in Organization schema serviceType field.', 'aura' ); ?>
-                        </p>
-                    </td>
-                </tr>
-            </table>
-
-            <h2><?php esc_html_e( 'Social Links', 'aura' ); ?></h2>
-            <table class="form-table" role="presentation">
-                <tr>
-                    <th scope="row">
-                        <label for="aura-twitter"><?php esc_html_e( 'Twitter / X URL', 'aura' ); ?></label>
-                    </th>
-                    <td>
-                        <input id="aura-twitter" class="regular-text" type="url"
-                               name="aura_content[twitter_url]"
-                               value="<?php echo esc_attr( $s['twitter_url'] ); ?>">
-                    </td>
-                </tr>
-                <tr>
-                    <th scope="row">
-                        <label for="aura-linkedin"><?php esc_html_e( 'LinkedIn URL', 'aura' ); ?></label>
-                    </th>
-                    <td>
-                        <input id="aura-linkedin" class="regular-text" type="url"
-                               name="aura_content[linkedin_url]"
-                               value="<?php echo esc_attr( $s['linkedin_url'] ); ?>">
-                    </td>
-                </tr>
-                <tr>
-                    <th scope="row">
-                        <label for="aura-github"><?php esc_html_e( 'GitHub URL', 'aura' ); ?></label>
-                    </th>
-                    <td>
-                        <input id="aura-github" class="regular-text" type="url"
-                               name="aura_content[github_url]"
-                               value="<?php echo esc_attr( $s['github_url'] ); ?>">
-                    </td>
-                </tr>
-                <tr>
-                    <th scope="row">
-                        <label for="aura-email"><?php esc_html_e( 'Contact Email', 'aura' ); ?></label>
-                    </th>
-                    <td>
-                        <input id="aura-email" class="regular-text" type="email"
-                               name="aura_content[email_address]"
-                               value="<?php echo esc_attr( $s['email_address'] ); ?>">
-                        <p class="description">
-                            <?php esc_html_e( 'Used as the href for the email icon in the footer social bar.', 'aura' ); ?>
-                        </p>
-                    </td>
-                </tr>
-            </table>
-
-            <h2><?php esc_html_e( 'Footer', 'aura' ); ?></h2>
-            <table class="form-table" role="presentation">
-                <tr>
-                    <th scope="row">
-                        <label for="aura-footer-tagline"><?php esc_html_e( 'Footer Brand Tagline', 'aura' ); ?></label>
-                    </th>
-                    <td>
-                        <textarea id="aura-footer-tagline" class="large-text" rows="3"
-                                  name="aura_content[footer_tagline]"><?php echo esc_textarea( $s['footer_tagline'] ); ?></textarea>
-                        <p class="description">
-                            <?php esc_html_e( 'Short description shown below the footer logo.', 'aura' ); ?>
-                        </p>
-                    </td>
-                </tr>
-            </table>
-
-            <h2><?php esc_html_e( 'Waitlist Section', 'aura' ); ?></h2>
-            <table class="form-table" role="presentation">
-                <tr>
-                    <th scope="row">
-                        <label for="aura-waitlist-title"><?php esc_html_e( 'Title Prefix', 'aura' ); ?></label>
-                    </th>
-                    <td>
-                        <input id="aura-waitlist-title" class="large-text" type="text"
-                               name="aura_content[waitlist_title]"
-                               value="<?php echo esc_attr( $s['waitlist_title'] ); ?>">
-                        <p class="description">
-                            <?php esc_html_e( 'The plain-text portion of the title that appears before the highlighted accent word(s).', 'aura' ); ?>
-                        </p>
-                    </td>
-                </tr>
-                <tr>
-                    <th scope="row">
-                        <label for="aura-waitlist-accent"><?php esc_html_e( 'Title Accent', 'aura' ); ?></label>
-                    </th>
-                    <td>
-                        <input id="aura-waitlist-accent" class="regular-text" type="text"
-                               name="aura_content[waitlist_title_accent]"
-                               value="<?php echo esc_attr( $s['waitlist_title_accent'] ); ?>">
-                        <p class="description">
-                            <?php esc_html_e( 'Highlighted word(s) rendered in the brand accent colour. Leave blank for no highlight.', 'aura' ); ?>
-                        </p>
-                    </td>
-                </tr>
-                <tr>
-                    <th scope="row">
-                        <label for="aura-waitlist-desc"><?php esc_html_e( 'Section Description', 'aura' ); ?></label>
-                    </th>
-                    <td>
-                        <textarea id="aura-waitlist-desc" class="large-text" rows="4"
-                                  name="aura_content[waitlist_description]"><?php echo esc_textarea( $s['waitlist_description'] ); ?></textarea>
-                    </td>
-                </tr>
-            </table>
-
-            <?php submit_button( __( 'Save Content Settings', 'aura' ) ); ?>
-        </form>
-    </div>
-    <?php
+    wp_safe_redirect( admin_url( 'admin.php?page=aura-site-settings&tab=sitewide' ) );
+    exit;
 }

@@ -16,6 +16,7 @@ $archive_title = $archive_obj && !empty($archive_obj->labels->name) ? (string) $
 $archive_meta = function_exists('aura_get_learn_archive_meta') ? aura_get_learn_archive_meta($post_type) : array();
 $archive_description = isset($archive_meta['description']) ? (string) $archive_meta['description'] : '';
 $card_label = isset($archive_meta['card_label']) ? (string) $archive_meta['card_label'] : __('Resource', 'aura');
+$has_entries = have_posts();
 ?>
 
 <main id="primary" class="site-main marketing-page learn-archive-page">
@@ -32,9 +33,9 @@ $card_label = isset($archive_meta['card_label']) ? (string) $archive_meta['card_
             <?php endif; ?>
         </section>
 
-        <section class="marketing-grid-section">
-            <div class="marketing-card-grid marketing-card-grid-solutions">
-                <?php if (have_posts()) : ?>
+        <?php if ($has_entries) : ?>
+            <section class="marketing-grid-section">
+                <div class="marketing-card-grid marketing-card-grid-solutions">
                     <?php while (have_posts()) : the_post(); ?>
                         <?php $entry_lead = function_exists('aura_get_learn_entry_excerpt') ? aura_get_learn_entry_excerpt(get_the_ID(), 34) : get_the_excerpt(); ?>
                         <article class="marketing-card marketing-card-solution">
@@ -49,16 +50,8 @@ $card_label = isset($archive_meta['card_label']) ? (string) $archive_meta['card_
                             </a>
                         </article>
                     <?php endwhile; ?>
-                <?php endif; ?>
-            </div>
-
-            <?php if (!have_posts()) : ?>
-                <div class="marketing-empty-state">
-                    <p><?php esc_html_e('No published entries yet. Publish the seeded drafts from wp-admin to populate this archive.', 'aura'); ?></p>
                 </div>
-            <?php endif; ?>
 
-            <?php if (have_posts()) : ?>
                 <div style="margin-top: 1.75rem;">
                     <?php the_posts_pagination(array(
                         'prev_text' => __('Previous', 'aura'),
@@ -66,7 +59,7 @@ $card_label = isset($archive_meta['card_label']) ? (string) $archive_meta['card_
                         'screen_reader_text' => __('Archive navigation', 'aura'),
                     )); ?>
                 </div>
-            <?php endif; ?>
-        </section>
+            </section>
+        <?php endif; ?>
     </div>
 </main>

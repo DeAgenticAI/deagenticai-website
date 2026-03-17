@@ -183,24 +183,24 @@ add_action('init', 'aura_flush_learn_rewrites_once', 40);
 function aura_get_learn_archive_meta($post_type) {
     $meta = array(
         'badge' => __('Learn', 'aura'),
-        'description' => __('Evergreen technical content for SEO, GEO, and AEO discoverability.', 'aura'),
+        'description' => __('Technical resources covering architecture, controls, and deployment patterns for governed agent systems.', 'aura'),
         'card_label' => __('Resource', 'aura'),
     );
 
     switch ((string) $post_type) {
         case 'aura_pillar':
             $meta['badge'] = __('Pillar Library', 'aura');
-            $meta['description'] = __('Authoritative long-form pages that anchor each strategic topic cluster.', 'aura');
+            $meta['description'] = __('Deep foundation pages that define the core architecture and control boundaries for each topic cluster.', 'aura');
             $meta['card_label'] = __('Pillar Page', 'aura');
             break;
         case 'aura_guide':
             $meta['badge'] = __('Technical Guides', 'aura');
-            $meta['description'] = __('Implementation guides and deep dives for builders and engineering teams.', 'aura');
+            $meta['description'] = __('Hands-on implementation walkthroughs and deep dives for engineering teams.', 'aura');
             $meta['card_label'] = __('Guide', 'aura');
             break;
         case 'aura_research':
             $meta['badge'] = __('Research', 'aura');
-            $meta['description'] = __('Original analysis, benchmark reporting, and institutional research notes.', 'aura');
+            $meta['description'] = __('Original analysis, benchmark findings, and institutional research notes.', 'aura');
             $meta['card_label'] = __('Research', 'aura');
             break;
         case 'aura_update':
@@ -1597,7 +1597,7 @@ function aura_get_pillar_seed_payload($slug) {
 }
 
 /**
- * Build pillar seed content with scaffold placeholders.
+ * Build pillar seed content for initial drafts.
  *
  * @param array<string,mixed> $entry Pillar entry payload.
  * @return string
@@ -1615,15 +1615,16 @@ function aura_get_pillar_seed_content($entry) {
     $focus_label = isset($step_labels[$focus_step]) ? (string) $step_labels[$focus_step] : __('Policy Evaluation', 'aura');
     $visual_placeholder = trim((string) (isset($payload['visual_placeholder']) ? $payload['visual_placeholder'] : ''));
     $cluster_placeholders = isset($payload['cluster_placeholders']) && is_array($payload['cluster_placeholders']) ? $payload['cluster_placeholders'] : array();
+    $visual_summary = (string) preg_replace('/^Diagram placeholder:\s*/i', '', $visual_placeholder);
 
     $content = array();
     $content[] = '<p>' . esc_html($semantic_triple) . '</p>';
-    $content[] = '<p>' . esc_html__('Use this pillar as the authoritative topic hub. Keep definitions crisp, link every key term to glossary entities, and route supporting guides/comparisons back to this page.', 'aura') . '</p>';
-    $content[] = '<h2>' . esc_html__('Happy Path Layer Focus', 'aura') . '</h2>';
-    $content[] = '<p>' . esc_html(sprintf(__('This pillar highlights Step %1$d: %2$s in the execution sequence. Keep examples and visuals anchored to this control layer.', 'aura'), $focus_step, $focus_label)) . '</p>';
+    $content[] = '<p>' . esc_html__('This pillar defines core concepts, architectural decisions, and control boundaries for the surrounding topic cluster.', 'aura') . '</p>';
+    $content[] = '<h2>' . esc_html__('Happy Path Context', 'aura') . '</h2>';
+    $content[] = '<p>' . esc_html(sprintf(__('This topic is centered on Step %1$d: %2$s in the execution sequence.', 'aura'), $focus_step, $focus_label)) . '</p>';
 
     if (!empty($cluster_placeholders)) {
-        $content[] = '<h2>' . esc_html__('Planned Cluster Articles', 'aura') . '</h2>';
+        $content[] = '<h2>' . esc_html__('Related Deep-Dive Topics', 'aura') . '</h2>';
         $content[] = '<ul>';
         foreach ($cluster_placeholders as $placeholder) {
             $label = trim((string) $placeholder);
@@ -1636,8 +1637,8 @@ function aura_get_pillar_seed_content($entry) {
     }
 
     if ('' !== $visual_placeholder) {
-        $content[] = '<h2>' . esc_html__('Visual Placeholder', 'aura') . '</h2>';
-        $content[] = '<p>' . esc_html($visual_placeholder) . '</p>';
+        $content[] = '<h2>' . esc_html__('Reference Diagram Context', 'aura') . '</h2>';
+        $content[] = '<p>' . esc_html(trim($visual_summary)) . '</p>';
     }
 
     return implode("\n", $content);
@@ -2426,7 +2427,7 @@ function aura_seed_learn_hub_content($page_id) {
     }
 
     if ('' === trim((string) $post->post_content)) {
-        $updates['post_content'] = '<p>Use this hub as the entry point for pillar pages, implementation guides, research reports, and product updates. Keep links dense and taxonomy clean so AI and search crawlers can navigate topic clusters without ambiguity.</p>';
+        $updates['post_content'] = '<p>This hub connects pillar pages, implementation guides, research notes, and product updates so readers can navigate topic clusters and decision paths with clarity.</p>';
         $has_update = true;
     }
 

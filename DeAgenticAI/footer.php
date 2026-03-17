@@ -38,7 +38,7 @@ if ( $aura_footer_logo_id ) {
                     <!-- Brand Column -->
                     <div class="footer-brand">
                         <a href="<?php echo esc_url(home_url('/')); ?>" class="footer-logo">
-                            <img src="<?php echo esc_url( $aura_footer_logo_url ); ?>" alt="<?php echo esc_attr( $aura_footer_site_name ); ?>" class="logo-image" />
+                            <img src="<?php echo esc_url( $aura_footer_logo_url ); ?>" alt="<?php echo esc_attr( $aura_footer_site_name ); ?>" class="logo-image" loading="lazy" decoding="async" />
                             <span><?php echo esc_html( $aura_footer_site_name ); ?></span>
                         </a>
                         <p class="footer-description">

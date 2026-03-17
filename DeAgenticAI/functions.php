@@ -14,6 +14,9 @@ require_once get_template_directory() . '/inc/ecosystem-item.php';
 require_once get_template_directory() . '/inc/marketing-pages.php';
 require_once get_template_directory() . '/inc/homepage-settings.php';
 require_once get_template_directory() . '/inc/global-settings.php';
+require_once get_template_directory() . '/inc/page-content-settings.php';
+require_once get_template_directory() . '/inc/site-settings.php';
+require_once get_template_directory() . '/inc/site-settings-page-tabs.php';
 require_once get_template_directory() . '/inc/learn-content.php';
 require_once get_template_directory() . '/inc/agentic-lifecycle.php';
 
@@ -551,91 +554,8 @@ function aura_render_integrations_page() {
         return;
     }
 
-    $settings = aura_get_recaptcha_settings();
-    ?>
-    <div class="wrap">
-        <h1><?php esc_html_e('Aura Integrations', 'aura'); ?></h1>
-        <p><?php esc_html_e('Manage external integrations used by the Aura theme.', 'aura'); ?></p>
-
-        <form method="post" action="options.php">
-            <?php settings_fields('aura_integrations_settings_group'); ?>
-
-            <table class="form-table" role="presentation">
-                <tbody>
-                    <tr>
-                        <th scope="row"><?php esc_html_e('Enable Google reCAPTCHA', 'aura'); ?></th>
-                        <td>
-                            <label for="aura-recaptcha-enabled">
-                                <input
-                                    id="aura-recaptcha-enabled"
-                                    type="checkbox"
-                                    name="aura_integrations[enabled]"
-                                    value="1"
-                                    <?php checked(1 === (int) $settings['enabled']); ?>
-                                />
-                                <?php esc_html_e('Protect waitlist and contact forms with reCAPTCHA v3.', 'aura'); ?>
-                            </label>
-                        </td>
-                    </tr>
-
-                    <tr>
-                        <th scope="row">
-                            <label for="aura-recaptcha-site-key"><?php esc_html_e('Site Key', 'aura'); ?></label>
-                        </th>
-                        <td>
-                            <input
-                                id="aura-recaptcha-site-key"
-                                type="text"
-                                class="regular-text"
-                                name="aura_integrations[site_key]"
-                                value="<?php echo esc_attr((string) $settings['site_key']); ?>"
-                                autocomplete="off"
-                            />
-                            <p class="description"><?php esc_html_e('Public site key from Google reCAPTCHA (v3).', 'aura'); ?></p>
-                        </td>
-                    </tr>
-
-                    <tr>
-                        <th scope="row">
-                            <label for="aura-recaptcha-secret-key"><?php esc_html_e('Secret Key', 'aura'); ?></label>
-                        </th>
-                        <td>
-                            <input
-                                id="aura-recaptcha-secret-key"
-                                type="password"
-                                class="regular-text"
-                                name="aura_integrations[secret_key]"
-                                value="<?php echo esc_attr((string) $settings['secret_key']); ?>"
-                                autocomplete="new-password"
-                            />
-                            <p class="description"><?php esc_html_e('Private secret key used for server-side verification.', 'aura'); ?></p>
-                        </td>
-                    </tr>
-
-                    <tr>
-                        <th scope="row">
-                            <label for="aura-recaptcha-min-score"><?php esc_html_e('Minimum Score', 'aura'); ?></label>
-                        </th>
-                        <td>
-                            <input
-                                id="aura-recaptcha-min-score"
-                                type="number"
-                                min="0.1"
-                                max="1"
-                                step="0.1"
-                                name="aura_integrations[min_score]"
-                                value="<?php echo esc_attr((string) $settings['min_score']); ?>"
-                            />
-                            <p class="description"><?php esc_html_e('Requests with a lower score are rejected (recommended: 0.5).', 'aura'); ?></p>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-
-            <?php submit_button(__('Save Integrations', 'aura')); ?>
-        </form>
-    </div>
-    <?php
+    wp_safe_redirect( admin_url( 'admin.php?page=aura-site-settings&tab=integrations' ) );
+    exit;
 }
 
 /**
@@ -723,11 +643,39 @@ function aura_scripts() {
     // Section styles
     wp_enqueue_style('aura-sections', get_template_directory_uri() . '/css/sections.css', array('aura-style'), $sections_version);
 
-    // Ecosystem pages styles
-    wp_enqueue_style('aura-ecosystem', get_template_directory_uri() . '/css/ecosystem.css', array('aura-style', 'aura-sections'), $ecosystem_version);
+    // Ecosystem pages styles — support both assigned templates and slug-based template hierarchy.
+    $is_ecosystem_page = is_page_template('page-ecosystem.php')
+        || is_page_template('page-ecosystem-item-acf.php')
+        || is_page_template('page-ecosystem-item-elementor.php')
+        || is_page(array('ecosystem', 'ecosystem-item'))
+        || is_singular(array('aura_compare', 'aura_guide', 'aura_research', 'aura_update', 'aura_pillar'))
+        || is_post_type_archive(array('aura_compare', 'aura_guide', 'aura_research', 'aura_update', 'aura_pillar'));
+    if ($is_ecosystem_page) {
+        wp_enqueue_style('aura-ecosystem', get_template_directory_uri() . '/css/ecosystem.css', array('aura-style', 'aura-sections'), $ecosystem_version);
+    }
 
-    // Additional pages (About / Terms / Privacy)
-    wp_enqueue_style('aura-pages-extra', get_template_directory_uri() . '/css/pages-extra.css', array('aura-style', 'aura-sections'), $pages_extra_version);
+    // Additional pages (About / Terms / Privacy / Waitlist + marketing hubs) — include slug and post-type checks.
+    $is_marketing_page = is_page_template(array(
+        'page-solutions.php',
+        'page-solution-entry.php',
+        'page-glossary.php',
+        'page-glossary-entry.php',
+        'page-learn.php',
+        'page-learn-faq.php',
+        'page-learn-faq-topic.php',
+    ))
+        || is_page(array('solutions', 'glossary', 'learn'))
+        || is_singular(array('aura_compare', 'aura_guide', 'aura_research', 'aura_update', 'aura_pillar'))
+        || is_post_type_archive(array('aura_compare', 'aura_guide', 'aura_research', 'aura_update', 'aura_pillar'));
+
+    $is_extra_page = is_page_template('page-about.php')
+        || is_page_template('page-terms.php')
+        || is_page_template('page-privacy.php')
+        || is_page_template('page-waitlist.php')
+        || is_page(array('about', 'terms', 'privacy', 'waitlist'));
+    if ($is_extra_page || $is_marketing_page) {
+        wp_enqueue_style('aura-pages-extra', get_template_directory_uri() . '/css/pages-extra.css', array('aura-style', 'aura-sections'), $pages_extra_version);
+    }
 
     // Skip link focus fix
     wp_enqueue_script('aura-skip-link-focus-fix', get_template_directory_uri() . '/js/skip-link-focus-fix.js', array(), '20151215', true);
@@ -749,6 +697,8 @@ function aura_scripts() {
 
     // Main JavaScript
     wp_enqueue_script('aura-main', get_template_directory_uri() . '/js/main.js', $main_js_dependencies, $main_js_version, true);
+    wp_script_add_data('aura-main', 'defer', true);
+    wp_script_add_data('aura-skip-link-focus-fix', 'defer', true);
 
     // Localize script for AJAX
     wp_localize_script('aura-main', 'aura_ajax', array(
@@ -768,6 +718,18 @@ function aura_scripts() {
     }
 }
 add_action('wp_enqueue_scripts', 'aura_scripts');
+
+/**
+ * Add defer attribute to specific scripts.
+ */
+function aura_defer_scripts($tag, $handle) {
+    $defer_handles = array('aura-main', 'aura-skip-link-focus-fix');
+    if (in_array($handle, $defer_handles, true)) {
+        return str_replace(' src=', ' defer src=', $tag);
+    }
+    return $tag;
+}
+add_filter('script_loader_tag', 'aura_defer_scripts', 10, 2);
 
 /**
  * Register widget areas
@@ -976,6 +938,13 @@ function aura_get_social_image_url() {
         $thumb = get_the_post_thumbnail_url($post_id, 'full');
         if ($thumb) {
             return (string) $thumb;
+        }
+    }
+
+    if (function_exists('aura_get_content')) {
+        $default_social_image = aura_get_content('social_image_url');
+        if ('' !== trim((string) $default_social_image)) {
+            return (string) $default_social_image;
         }
     }
 
@@ -2045,6 +2014,13 @@ function aura_handle_contact_submit() {
     }
 
     $mail_to = get_option('admin_email');
+    if (function_exists('aura_get_content')) {
+        $configured_mail_to = aura_get_content('email_address');
+        if ('' !== trim((string) $configured_mail_to) && is_email($configured_mail_to)) {
+            $mail_to = $configured_mail_to;
+        }
+    }
+
     $subject = sprintf(__('New contact request from %s', 'aura'), $name);
     $body_lines = array(
         'Name: ' . $name,

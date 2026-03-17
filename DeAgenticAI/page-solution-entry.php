@@ -31,17 +31,24 @@ get_header();
             '' !== $lead &&
             false !== stripos($lead, $semantic_triple)
         );
+        $overview_content = trim((string) get_post_field('post_content', $page_id));
+        $has_overview_content = '' !== $overview_content;
+        if ($has_overview_content && function_exists('aura_is_marketing_seed_stub_content')) {
+            $has_overview_content = !aura_is_marketing_seed_stub_content($overview_content);
+        }
         $has_implementation_steps = !empty($payload['implementation_steps']);
         $has_faqs = !empty($payload['faqs']);
         $has_glossary_links = !empty($payload['glossary_links']);
         $has_resource_links = !empty($payload['resource_links']);
         $has_compare_links = !empty($payload['compare_links']);
-        $jump_links = array(
-            array(
+        $jump_links = array();
+
+        if ($has_overview_content) {
+            $jump_links[] = array(
                 'id' => 'solution-overview',
                 'label' => __('Overview', 'aura'),
-            ),
-        );
+            );
+        }
 
         if ($has_implementation_steps) {
             $jump_links[] = array(
@@ -135,7 +142,7 @@ get_header();
                             <div class="marketing-visual-glow"></div>
                             <div class="marketing-visual-chip"><?php esc_html_e('Implementation Path', 'aura'); ?></div>
                             <strong><?php esc_html_e('Intent → Policy → Audit → Execution', 'aura'); ?></strong>
-                            <p><?php esc_html_e('Use the featured image for the solution-specific hero diagram or architecture visual.', 'aura'); ?></p>
+                            <p><?php esc_html_e('A governed workflow from policy design to auditable autonomous execution.', 'aura'); ?></p>
                         </div>
                     <?php endif; ?>
                 </div>
@@ -156,20 +163,22 @@ get_header();
 
             <div class="marketing-content-layout marketing-content-layout-solution">
                 <div class="marketing-main-column">
-                    <section id="solution-overview" class="marketing-section-card marketing-prose-card">
-                        <div class="marketing-section-heading">
-                            <h2><?php esc_html_e('Overview', 'aura'); ?></h2>
-                        </div>
-                        <div class="marketing-prose">
-                            <?php the_content(); ?>
-                        </div>
-                    </section>
+                    <?php if ($has_overview_content) : ?>
+                        <section id="solution-overview" class="marketing-section-card marketing-prose-card">
+                            <div class="marketing-section-heading">
+                                <h2><?php esc_html_e('Overview', 'aura'); ?></h2>
+                            </div>
+                            <div class="marketing-prose">
+                                <?php the_content(); ?>
+                            </div>
+                        </section>
+                    <?php endif; ?>
 
                     <?php if ($has_implementation_steps) : ?>
                         <section id="solution-implementation" class="marketing-section-card">
                             <div class="marketing-section-heading">
                                 <h2><?php esc_html_e('How do you implement this?', 'aura'); ?></h2>
-                                <p><?php esc_html_e('Use these steps to match the page narrative to the structured HowTo schema.', 'aura'); ?></p>
+                                <p><?php esc_html_e('A practical sequence from authority design to controlled production rollout.', 'aura'); ?></p>
                             </div>
 
                             <ol class="marketing-step-list">

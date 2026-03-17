@@ -4,6 +4,11 @@
  *
  * @package Aura
  */
+
+$aura_architecture_logo_url = function_exists( 'aura_get_site_logo_url' ) ? aura_get_site_logo_url() : '';
+if ( '' === $aura_architecture_logo_url ) {
+    $aura_architecture_logo_url = get_template_directory_uri() . '/images/logo.png';
+}
 ?>
 
 <section class="architecture-section">
@@ -38,7 +43,7 @@
             <div class="sonar-ring sonar-ring-2"></div>
             
             <div class="platform-hub">
-                <img src="<?php echo esc_url(get_template_directory_uri() . '/images/logo.png'); ?>" alt="DeAgenticAI Logo" class="platform-logo animate-pulse">
+                <img src="<?php echo esc_url( $aura_architecture_logo_url ); ?>" alt="DeAgenticAI Logo" class="platform-logo animate-pulse" loading="lazy" decoding="async">
                 <div class="platform-ring ring-1"></div>
                 <div class="platform-ring ring-2"></div>
             </div>

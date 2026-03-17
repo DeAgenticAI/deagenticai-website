@@ -31,12 +31,7 @@
         $compare_recommended = isset($compare_payload['recommended_for']) && is_array($compare_payload['recommended_for']) ? $compare_payload['recommended_for'] : array();
         $compare_not_ideal = isset($compare_payload['not_ideal_for']) && is_array($compare_payload['not_ideal_for']) ? $compare_payload['not_ideal_for'] : array();
 
-        $pillar_scaffold = ('aura_pillar' === $post_type && function_exists('aura_get_pillar_scaffold_payload')) ? aura_get_pillar_scaffold_payload($post_id) : array();
         $pillar_faqs = ('aura_pillar' === $post_type && function_exists('aura_get_pillar_faq_payload')) ? aura_get_pillar_faq_payload($post_id) : array();
-        $pillar_focus_step = isset($pillar_scaffold['focus_step']) ? (int) $pillar_scaffold['focus_step'] : 0;
-        $pillar_focus_label = isset($pillar_scaffold['focus_label']) ? trim((string) $pillar_scaffold['focus_label']) : '';
-        $pillar_visual_placeholder = isset($pillar_scaffold['visual_placeholder']) ? trim((string) $pillar_scaffold['visual_placeholder']) : '';
-        $pillar_cluster_placeholders = isset($pillar_scaffold['cluster_placeholders']) && is_array($pillar_scaffold['cluster_placeholders']) ? $pillar_scaffold['cluster_placeholders'] : array();
 
         $related = get_posts(array(
             'post_type' => $post_type,
@@ -91,7 +86,7 @@
                 <div class="marketing-entry-visual">
                     <?php if ($featured_image) : ?>
                         <figure class="marketing-featured-media">
-                            <img src="<?php echo esc_url($featured_image); ?>" alt="<?php the_title_attribute(); ?>">
+                            <img src="<?php echo esc_url($featured_image); ?>" alt="<?php the_title_attribute(); ?>" fetchpriority="high" decoding="async">
                         </figure>
                     <?php else : ?>
                         <?php if ('aura_compare' === $post_type) : ?>
@@ -110,7 +105,7 @@
                                 <?php if ('' !== $compare_primary_question) : ?>
                                     <p><?php echo esc_html($compare_primary_question); ?></p>
                                 <?php else : ?>
-                                    <p><?php esc_html_e('Use this page to present objective criteria, migration implications, and a practical decision framework.', 'aura'); ?></p>
+                                    <p><?php esc_html_e('A practical comparison of criteria, migration implications, and operational tradeoffs.', 'aura'); ?></p>
                                 <?php endif; ?>
                             </div>
                         <?php else : ?>
@@ -118,7 +113,7 @@
                                 <div class="marketing-visual-glow"></div>
                                 <div class="marketing-visual-chip"><?php esc_html_e('Learn Resource', 'aura'); ?></div>
                                 <strong><?php echo esc_html($archive_label); ?></strong>
-                                <p><?php esc_html_e('Set a featured image to add a hero visual or architecture diagram for this entry.', 'aura'); ?></p>
+                                <p><?php esc_html_e('Architecture patterns, control boundaries, and implementation context for this topic.', 'aura'); ?></p>
                             </div>
                         <?php endif; ?>
                     <?php endif; ?>
@@ -133,51 +128,11 @@
                         </div>
                     </section>
 
-                    <?php if ('aura_pillar' === $post_type && (!empty($pillar_cluster_placeholders) || '' !== $pillar_visual_placeholder || '' !== $pillar_focus_label)) : ?>
-                        <section class="marketing-section-card pillar-scaffold-card">
-                            <div class="marketing-section-heading">
-                                <h2><?php esc_html_e('Pillar Scaffold', 'aura'); ?></h2>
-                                <p><?php esc_html_e('Authoring placeholders used to keep the full pillar cluster and visual system consistent while content production is in progress.', 'aura'); ?></p>
-                            </div>
-
-                            <?php if ('' !== $pillar_focus_label) : ?>
-                                <p class="compare-primary-question">
-                                    <?php
-                                    if ($pillar_focus_step > 0) {
-                                        echo esc_html(sprintf(__('Happy Path focus: Step %1$d - %2$s', 'aura'), $pillar_focus_step, $pillar_focus_label));
-                                    } else {
-                                        echo esc_html(sprintf(__('Happy Path focus: %s', 'aura'), $pillar_focus_label));
-                                    }
-                                    ?>
-                                </p>
-                            <?php endif; ?>
-
-                            <?php if ('' !== $pillar_visual_placeholder) : ?>
-                                <article class="compare-decision-column">
-                                    <h3><?php esc_html_e('Visual Placeholder', 'aura'); ?></h3>
-                                    <p class="marketing-body-copy"><?php echo esc_html($pillar_visual_placeholder); ?></p>
-                                </article>
-                            <?php endif; ?>
-
-                            <?php if (!empty($pillar_cluster_placeholders)) : ?>
-                                <article class="compare-decision-column" style="margin-top: 1rem;">
-                                    <h3><?php esc_html_e('Planned Cluster Articles', 'aura'); ?></h3>
-                                    <ul class="compare-bullet-list">
-                                        <?php foreach ($pillar_cluster_placeholders as $placeholder) : ?>
-                                            <?php if ('' === trim((string) $placeholder)) { continue; } ?>
-                                            <li><?php echo esc_html((string) $placeholder); ?></li>
-                                        <?php endforeach; ?>
-                                    </ul>
-                                </article>
-                            <?php endif; ?>
-                        </section>
-                    <?php endif; ?>
-
                     <?php if ('aura_pillar' === $post_type && !empty($pillar_faqs)) : ?>
                         <section class="marketing-section-card">
                             <div class="marketing-section-heading">
                                 <h2><?php esc_html_e('Frequently Asked Questions', 'aura'); ?></h2>
-                                <p><?php esc_html_e('Use these implementation-focused answers to reinforce key controls in this pillar.', 'aura'); ?></p>
+                                <p><?php esc_html_e('Implementation-focused answers that clarify control boundaries for this pillar.', 'aura'); ?></p>
                             </div>
 
                             <div class="marketing-faq-list">

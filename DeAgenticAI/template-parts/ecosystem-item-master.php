@@ -247,7 +247,7 @@ $capability_icon_map = array(
 
                 <div class="eco-logo-visual reveal-scale" style="transition-delay: 0.12s;">
                     <div class="eco-grid-overlay"></div>
-                    <img src="<?php echo esc_url($logo_uri); ?>" alt="DeAgenticAI Logo" />
+                    <img src="<?php echo esc_url($logo_uri); ?>" alt="DeAgenticAI Logo" loading="lazy" decoding="async" />
                 </div>
             </section>
 

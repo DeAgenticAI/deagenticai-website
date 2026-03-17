@@ -4,6 +4,11 @@
  *
  * @package Aura
  */
+
+$aura_features_logo_url = function_exists( 'aura_get_site_logo_url' ) ? aura_get_site_logo_url() : '';
+if ( '' === $aura_features_logo_url ) {
+    $aura_features_logo_url = get_template_directory_uri() . '/images/logo.png';
+}
 ?>
 
 <section class="features-section">
@@ -176,7 +181,7 @@
                         </div>
 
                         <div class="wallet-hub">
-                            <img src="<?php echo esc_url(get_template_directory_uri() . '/images/logo.png'); ?>" alt="DeAgenticAI Logo">
+                            <img src="<?php echo esc_url( $aura_features_logo_url ); ?>" alt="DeAgenticAI Logo" loading="lazy" decoding="async">
                         </div>
                     </div>
                 </div>

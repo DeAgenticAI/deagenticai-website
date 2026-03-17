@@ -1,0 +1,1256 @@
+/**
+ * Aura Theme - Ecosystem Pages
+ */
+
+.eco-page,
+.eco-service-page,
+.eco-coming-page {
+    background: #030303;
+    min-height: 100vh;
+    padding-top: 8rem;
+    padding-bottom: 6rem;
+    color: #ffffff;
+}
+
+.eco-shell {
+    width: min(1120px, calc(100% - 3rem));
+    margin: 0 auto;
+}
+
+.eco-section {
+    margin-bottom: 8rem;
+}
+
+.eco-hero-inner {
+    max-width: 900px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.eco-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.375rem 1rem;
+    border-radius: 9999px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(4px);
+    margin-bottom: 2rem;
+}
+
+.eco-badge-dot {
+    position: relative;
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    background: var(--primary);
+}
+
+.eco-badge-dot::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: var(--primary);
+    opacity: 0.75;
+    animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+.eco-badge-text {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--primary);
+    font-family: var(--font-mono);
+    font-weight: 500;
+}
+
+.eco-title {
+    font-family: var(--font-serif);
+    font-size: clamp(3rem, 7vw, 4.5rem);
+    font-weight: 500;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    margin-bottom: 1.75rem;
+}
+
+.eco-title span {
+    color: var(--primary);
+    text-shadow: 0 0 20px rgba(56, 189, 248, 0.24);
+}
+
+.eco-subtitle {
+    font-size: clamp(1.5rem, 3.2vw, 1.875rem);
+    color: rgba(255, 255, 255, 0.6);
+    font-weight: 300;
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+    margin-bottom: 3rem;
+}
+
+.eco-lead-card {
+    margin: 0 auto 2.5rem;
+    text-align: left;
+    max-width: 880px;
+    border-radius: 1.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.03);
+    padding: 2rem;
+}
+
+.eco-lead-card p {
+    color: rgba(255, 255, 255, 0.82);
+    font-size: 1.125rem;
+    font-weight: 300;
+    line-height: 1.625;
+    font-family: var(--font-sans);
+}
+
+.eco-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.55rem;
+    border-radius: 9999px;
+    border: 1px solid transparent;
+    padding: 1rem 2rem;
+    font-size: 1rem;
+    font-weight: 500;
+    transition: transform 0.3s ease, background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+.eco-btn svg {
+    width: 1rem;
+    height: 1rem;
+}
+
+.eco-btn-primary {
+    background: var(--primary);
+    color: #000;
+}
+
+.eco-btn-primary:hover {
+    transform: translateY(-2px) scale(1.02);
+}
+
+.eco-btn-outline {
+    border-color: rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.02);
+    color: #fff;
+}
+
+.eco-btn-outline:hover {
+    border-color: rgba(255, 255, 255, 0.24);
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.eco-btn-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.9rem;
+    justify-content: center;
+}
+
+.eco-h2 {
+    font-family: var(--font-serif);
+    font-size: clamp(1.875rem, 4.8vw, 3rem);
+    font-weight: 500;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    color: transparent;
+    background-image: linear-gradient(180deg, #ffffff 0%, rgba(255, 255, 255, 0.62) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    margin-bottom: 3rem;
+}
+
+.eco-h2.center {
+    text-align: center;
+}
+
+.eco-grid-2,
+.eco-grid-3,
+.eco-grid-4 {
+    display: grid;
+    gap: 1.5rem;
+}
+
+.eco-grid-2 {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+
+.eco-grid-3 {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+
+.eco-grid-4 {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+
+.eco-card {
+    border-radius: 1.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(8px);
+    transition: border-color 0.3s ease, background-color 0.3s ease, transform 0.3s ease;
+}
+
+.eco-card:hover {
+    border-color: rgba(56, 189, 248, 0.35);
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.eco-panel {
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.eco-point {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+}
+
+.eco-point + .eco-point {
+    margin-top: 0;
+}
+
+.eco-point-icon {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(56, 189, 248, 0.12);
+    color: var(--primary);
+    flex-shrink: 0;
+}
+
+.eco-point-icon svg {
+    width: 1.15rem;
+    height: 1.15rem;
+}
+
+.eco-point p {
+    color: rgba(255, 255, 255, 0.8);
+    line-height: 1.625;
+    font-size: 1rem;
+    font-family: var(--font-sans);
+}
+
+.eco-point p strong {
+    display: block;
+    margin-bottom: 0.25rem;
+    color: #fff;
+    font-weight: 600;
+}
+
+.eco-visual-card {
+    position: relative;
+    min-height: 560px;
+    border-radius: 3rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.02);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    margin-bottom: 5rem;
+}
+
+.eco-grid-overlay {
+    position: absolute;
+    inset: 0;
+    background-image: linear-gradient(to right, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+    background-size: 42px 42px;
+    mask-image: radial-gradient(circle at center, black 45%, transparent 100%);
+    -webkit-mask-image: radial-gradient(circle at center, black 45%, transparent 100%);
+    opacity: 0.3;
+}
+
+.eco-control-plane {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    min-height: 520px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    z-index: 1;
+    overflow: hidden;
+}
+
+.eco-cp-bg {
+    position: absolute;
+    inset: -12%;
+    pointer-events: none;
+    transform-origin: 50% 50%;
+}
+
+.eco-cp-bg-a {
+    background: radial-gradient(circle at 30% 30%, rgba(56, 189, 248, 0.1), transparent 50%);
+    animation: eco-cp-ambient-a 20s ease-in-out infinite;
+}
+
+.eco-cp-bg-b {
+    background: radial-gradient(circle at 70% 70%, rgba(56, 189, 248, 0.07), transparent 52%);
+    animation: eco-cp-ambient-b 25s ease-in-out infinite;
+}
+
+.eco-cp-svg {
+    position: relative;
+    z-index: 1;
+    width: min(100%, 58rem);
+    max-width: 100%;
+    height: auto;
+    max-height: 760px;
+    aspect-ratio: 1 / 1;
+    overflow: visible;
+}
+
+.eco-cp-hive-lines {
+    opacity: 0;
+}
+
+.eco-cp-hive-lines line {
+    stroke: rgba(56, 189, 248, 0.46);
+    stroke-width: 0.5;
+    stroke-dasharray: 4 4;
+}
+
+.eco-cp-core-glow {
+    fill: var(--primary);
+    opacity: 0.1;
+    filter: blur(80px);
+}
+
+.eco-cp-logo {
+    filter: drop-shadow(0 0 24px rgba(56, 189, 248, 0.24));
+}
+
+.eco-cp-node {
+    transform-origin: center;
+}
+
+.eco-cp-node-glow {
+    fill: var(--primary);
+    opacity: 0.02;
+    filter: blur(20px);
+}
+
+.eco-cp-node-hex {
+    fill: rgba(255, 255, 255, 0.02);
+    stroke: rgba(56, 189, 248, 0.95);
+    stroke-width: 1.5;
+}
+
+.eco-cp-node-label {
+    fill: rgba(255, 255, 255, 0.42);
+    font-family: var(--font-mono);
+    font-size: 8px;
+    font-weight: 500;
+    letter-spacing: 0.2em;
+    text-anchor: middle;
+    opacity: 0;
+}
+
+.eco-cp-status {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 2.4rem;
+    width: 100%;
+    min-height: 1.5rem;
+    z-index: 2;
+    text-align: center;
+    pointer-events: none;
+}
+
+.eco-cp-status-line {
+    position: absolute;
+    left: 0;
+    right: 0;
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: 0.58rem;
+    text-transform: uppercase;
+    letter-spacing: 0.34em;
+    opacity: 0;
+    color: rgba(255, 255, 255, 0.2);
+}
+
+.eco-cp-status-line-3 {
+    color: var(--primary);
+    font-size: 0.62rem;
+    letter-spacing: 0.38em;
+    font-weight: 600;
+}
+
+.eco-step-grid {
+    display: grid;
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+    gap: 1.25rem;
+    width: 100%;
+    max-width: 72rem;
+    margin: 0 auto;
+}
+
+.eco-step-card {
+    position: relative;
+    border-radius: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(8px);
+    padding: 1.5rem;
+    overflow: hidden;
+}
+
+.eco-step-number {
+    position: absolute;
+    top: 0;
+    right: 0;
+    padding: 1rem;
+    color: rgba(255, 255, 255, 0.05);
+    font-family: var(--font-serif);
+    font-size: 2.25rem;
+    line-height: 1;
+    font-style: italic;
+    transition: color 0.3s ease;
+}
+
+.eco-step-card:hover .eco-step-number {
+    color: rgba(56, 189, 248, 0.1);
+}
+
+.eco-step-card h3 {
+    position: relative;
+    z-index: 1;
+    margin-bottom: 0.75rem;
+    font-size: 1.25rem;
+    font-weight: 600;
+    font-family: var(--font-sans);
+    color: #ffffff;
+}
+
+.eco-step-card p {
+    position: relative;
+    z-index: 1;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.875rem;
+    line-height: 1.625;
+    font-weight: 300;
+    font-family: var(--font-sans);
+}
+
+.eco-component-grid {
+    display: grid;
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+    gap: 2rem;
+}
+
+.eco-component-card {
+    border-radius: 2.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.05);
+    padding: 2.5rem;
+    display: flex;
+    flex-direction: column;
+    min-height: 100%;
+    transition: border-color 0.5s ease, background-color 0.5s ease;
+}
+
+.eco-component-card:hover {
+    border-color: rgba(56, 189, 248, 0.4);
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.eco-icon-wrap {
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: 1rem;
+    border: 1px solid rgba(56, 189, 248, 0.2);
+    background: rgba(56, 189, 248, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 2rem;
+    transition: transform 0.5s ease;
+}
+
+.eco-component-card:hover .eco-icon-wrap {
+    transform: scale(1.1);
+}
+
+.eco-icon-wrap svg {
+    width: 1.75rem;
+    height: 1.75rem;
+    color: var(--primary);
+}
+
+.eco-component-card h3 {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    font-weight: 600;
+    font-family: var(--font-sans);
+    color: #ffffff;
+    transition: color 0.35s ease;
+}
+
+.eco-component-card:hover h3 {
+    color: var(--primary);
+}
+
+.eco-component-card p {
+    color: rgba(255, 255, 255, 0.5);
+    line-height: 1.625;
+    margin-bottom: 2.5rem;
+    font-size: 1rem;
+    font-weight: 300;
+    font-family: var(--font-sans);
+    flex-grow: 1;
+}
+
+.eco-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--primary);
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: gap 0.25s ease;
+}
+
+.eco-link svg {
+    width: 0.9rem;
+    height: 0.9rem;
+}
+
+.eco-link:hover {
+    gap: 0.75rem;
+}
+
+.eco-unity {
+    border-radius: 3rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: linear-gradient(to bottom right, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0));
+    backdrop-filter: blur(18px);
+    padding: 3rem;
+}
+
+.eco-unity-grid {
+    display: grid;
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+    gap: 3rem;
+}
+
+.eco-unity p {
+    color: rgba(255, 255, 255, 0.82);
+    font-size: 1.25rem;
+    font-weight: 300;
+    line-height: 1.6;
+    margin-bottom: 2rem;
+    font-family: var(--font-sans);
+}
+
+.eco-check-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.eco-check-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.875rem;
+    line-height: 1.6;
+    font-family: var(--font-sans);
+}
+
+.eco-check-list li + li {
+    margin-top: 0.8rem;
+}
+
+.eco-check-list li svg {
+    width: 1.25rem;
+    height: 1.25rem;
+    color: var(--primary);
+    flex-shrink: 0;
+}
+
+.eco-meter-panel {
+    position: relative;
+    border-radius: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(0, 0, 0, 0.4);
+    padding: 2rem;
+    overflow: hidden;
+}
+
+.eco-meter-glow {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 50% 50%, rgba(56, 189, 248, 0.16), transparent 72%);
+    filter: blur(60px);
+}
+
+.eco-meter-stack {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.eco-meter-track {
+    height: 0.5rem;
+    border-radius: 9999px;
+    background: rgba(255, 255, 255, 0.08);
+    overflow: hidden;
+}
+
+.eco-meter-fill {
+    display: block;
+    height: 100%;
+    width: 0;
+    border-radius: inherit;
+    background: rgba(56, 189, 248, 0.45);
+    transition: width 1.2s ease;
+    transition-delay: var(--delay, 0s);
+}
+
+.reveal-up.in-view .eco-meter-fill,
+.reveal-scale.in-view .eco-meter-fill {
+    width: var(--target, 0%);
+}
+
+.eco-table-wrap {
+    border-radius: 1.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.02);
+    overflow-x: auto;
+}
+
+.eco-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 1120px;
+}
+
+.eco-table th,
+.eco-table td {
+    text-align: left;
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    font-family: var(--font-sans);
+}
+
+.eco-table thead th {
+    color: rgba(255, 255, 255, 0.42);
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+}
+
+.eco-table tbody tr:hover {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.eco-table tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+.eco-table td:first-child {
+    color: #fff;
+    font-weight: 500;
+}
+
+.eco-table td:nth-child(2),
+.eco-table thead th:nth-child(2) {
+    color: var(--primary);
+    background: rgba(56, 189, 248, 0.02);
+}
+
+.eco-table td:nth-child(3),
+.eco-table td:nth-child(4),
+.eco-table td:nth-child(5) {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.eco-table-note {
+    margin-top: 1rem;
+    color: rgba(255, 255, 255, 0.56);
+    font-size: 0.95rem;
+    line-height: 1.7;
+}
+
+.eco-faq-wrap {
+    max-width: 880px;
+    margin: 0 auto;
+}
+
+.eco-faq-card {
+    border-radius: 1.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(8px);
+    padding: 2rem;
+}
+
+.eco-faq-card + .eco-faq-card {
+    margin-top: 1.5rem;
+}
+
+.eco-faq-card h3 {
+    font-size: 1.25rem;
+    margin-bottom: 1rem;
+    font-weight: 600;
+    font-family: var(--font-sans);
+    color: #ffffff;
+}
+
+.eco-faq-card p {
+    color: rgba(255, 255, 255, 0.5);
+    line-height: 1.625;
+    font-weight: 300;
+    font-family: var(--font-sans);
+}
+
+.eco-service-arch {
+    display: grid;
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+    gap: 2rem;
+    align-items: center;
+}
+
+.eco-block-card {
+    border-radius: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    background: rgba(255, 255, 255, 0.02);
+    padding: 1.5rem;
+}
+
+.eco-block-card h4 {
+    font-family: var(--font-mono);
+    color: var(--primary);
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    font-size: 0.68rem;
+    margin-bottom: 1rem;
+}
+
+.eco-list-rows {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.eco-list-rows li {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.9rem;
+}
+
+.eco-list-rows li + li {
+    margin-top: 0.65rem;
+}
+
+.eco-list-rows .dot {
+    width: 0.35rem;
+    height: 0.35rem;
+    border-radius: 50%;
+    background: rgba(56, 189, 248, 0.55);
+}
+
+.eco-logo-visual {
+    min-height: 370px;
+    border-radius: 1.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.03);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.eco-logo-visual img {
+    width: 5.5rem;
+    height: 5.5rem;
+    object-fit: contain;
+    position: relative;
+    z-index: 2;
+    filter: drop-shadow(0 0 24px rgba(56, 189, 248, 0.2));
+    animation: eco-pulse 2.5s ease-in-out infinite;
+}
+
+.eco-logo-visual::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at center, rgba(56, 189, 248, 0.16), transparent 70%);
+}
+
+.eco-timeline {
+    display: grid;
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+    gap: 1rem;
+    position: relative;
+}
+
+.eco-timeline-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.eco-step-dot {
+    width: 2.6rem;
+    height: 2.6rem;
+    border-radius: 50%;
+    border: 1px solid rgba(56, 189, 248, 0.4);
+    background: #050505;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary);
+    font-family: var(--font-mono);
+    font-size: 0.84rem;
+    box-shadow: 0 0 20px rgba(56, 189, 248, 0.2);
+    margin-bottom: 0.8rem;
+}
+
+.eco-timeline-step h4 {
+    font-size: 1rem;
+    margin-bottom: 0.28rem;
+    font-weight: 500;
+}
+
+.eco-timeline-step p {
+    color: rgba(255, 255, 255, 0.42);
+    text-transform: uppercase;
+    letter-spacing: 0.11em;
+    font-family: var(--font-mono);
+    font-size: 0.58rem;
+    line-height: 1.4;
+    max-width: 170px;
+}
+
+.eco-chip-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.eco-chip {
+    padding: 0.45rem 0.75rem;
+    border-radius: 0.6rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.03);
+    color: rgba(255, 255, 255, 0.6);
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+}
+
+.eco-integration-grid {
+    display: grid;
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+    gap: 1.5rem;
+    align-items: center;
+}
+
+.eco-cap-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.9rem;
+}
+
+.eco-cap-card {
+    border-radius: 0.95rem;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(0, 0, 0, 0.42);
+    padding: 1rem;
+    text-align: center;
+}
+
+.eco-cap-card svg {
+    width: 1.5rem;
+    height: 1.5rem;
+    color: rgba(56, 189, 248, 0.5);
+    margin: 0 auto 0.55rem;
+}
+
+.eco-cap-card span {
+    color: rgba(255, 255, 255, 0.82);
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.eco-related-grid {
+    display: grid;
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+    gap: 1.5rem;
+}
+
+.eco-related-grid.eco-related-grid-4 {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+
+.eco-related-col h4 {
+    font-family: var(--font-mono);
+    color: var(--primary);
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    font-size: 0.68rem;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+}
+
+.eco-related-col h4 svg {
+    width: 0.9rem;
+    height: 0.9rem;
+}
+
+.eco-guide-card,
+.eco-compare-link {
+    display: block;
+    border-radius: 0.95rem;
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    background: rgba(255, 255, 255, 0.03);
+    padding: 1rem 1rem;
+    transition: background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease;
+}
+
+.eco-guide-card + .eco-guide-card,
+.eco-compare-link + .eco-compare-link {
+    margin-top: 0.75rem;
+}
+
+.eco-guide-card h5 {
+    color: #fff;
+    font-size: 0.95rem;
+    margin-bottom: 0.3rem;
+}
+
+.eco-guide-card p {
+    color: rgba(255, 255, 255, 0.45);
+    font-size: 0.74rem;
+    line-height: 1.45;
+}
+
+.eco-compare-link {
+    color: rgba(255, 255, 255, 0.75);
+    font-size: 0.78rem;
+}
+
+.eco-guide-card:hover,
+.eco-compare-link:hover {
+    border-color: rgba(56, 189, 248, 0.28);
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.eco-post-card {
+    display: block;
+    border-radius: 0.95rem;
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    background: rgba(255, 255, 255, 0.03);
+    padding: 0.9rem 1rem;
+    transition: background-color 0.25s ease, border-color 0.25s ease;
+}
+
+.eco-post-card + .eco-post-card {
+    margin-top: 0.75rem;
+}
+
+.eco-post-card-meta {
+    display: inline-block;
+    margin-bottom: 0.3rem;
+    color: var(--primary);
+    font-family: var(--font-mono);
+    font-size: 0.58rem;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+}
+
+.eco-post-card h5 {
+    color: #ffffff;
+    font-size: 0.88rem;
+    line-height: 1.45;
+    font-weight: 600;
+}
+
+.eco-post-card:hover {
+    border-color: rgba(56, 189, 248, 0.28);
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.eco-glossary-wrap {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.eco-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: #050505;
+    color: rgba(255, 255, 255, 0.4);
+    padding: 0.5rem 1rem;
+    font-size: 0.68rem;
+    transition: color 0.25s ease, border-color 0.25s ease;
+}
+
+.eco-pill:hover {
+    color: var(--primary);
+    border-color: rgba(56, 189, 248, 0.4);
+}
+
+.eco-context {
+    border-radius: 2.4rem;
+    border: 1px solid rgba(56, 189, 248, 0.24);
+    background: rgba(56, 189, 248, 0.04);
+    text-align: center;
+    padding: 2.8rem;
+}
+
+.eco-context p {
+    max-width: 760px;
+    margin: 0 auto 1.8rem;
+    color: rgba(255, 255, 255, 0.6);
+    font-weight: 300;
+    line-height: 1.65;
+}
+
+.eco-center {
+    text-align: center;
+}
+
+.eco-coming-page {
+    display: flex;
+    align-items: center;
+}
+
+.eco-coming-card {
+    max-width: 640px;
+    margin: 0 auto;
+    width: 100%;
+    padding: 3rem;
+    border-radius: 2.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.03);
+    text-align: center;
+}
+
+.eco-coming-card h1 {
+    font-family: var(--font-serif);
+    font-size: clamp(2rem, 4vw, 2.6rem);
+    font-style: italic;
+    margin-bottom: 1rem;
+}
+
+.eco-coming-card p {
+    color: rgba(255, 255, 255, 0.62);
+    margin-bottom: 2rem;
+    line-height: 1.65;
+}
+
+.reveal-up,
+.reveal-scale {
+    opacity: 0;
+    transition: opacity 0.7s ease, transform 0.7s ease;
+    will-change: transform, opacity;
+}
+
+.reveal-up {
+    transform: translateY(20px);
+}
+
+.reveal-scale {
+    transform: translateY(16px) scale(0.98);
+}
+
+.reveal-up.in-view,
+.reveal-scale.in-view {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+}
+
+@keyframes eco-pulse {
+    0%,
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.55;
+        transform: scale(0.98);
+    }
+}
+
+@keyframes eco-cp-ambient-a {
+    0%,
+    100% {
+        opacity: 0.2;
+        transform: scale(1) rotate(0deg);
+    }
+    50% {
+        opacity: 0.4;
+        transform: scale(1.3) rotate(45deg);
+    }
+}
+
+@keyframes eco-cp-ambient-b {
+    0%,
+    100% {
+        opacity: 0.1;
+        transform: scale(1.3) rotate(0deg);
+    }
+    50% {
+        opacity: 0.3;
+        transform: scale(1) rotate(-45deg);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .eco-cp-bg-a,
+    .eco-cp-bg-b {
+        animation: none;
+    }
+}
+
+@media (min-width: 768px) {
+    .eco-grid-2 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .eco-grid-3 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .eco-grid-4 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .eco-step-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .eco-unity-grid,
+    .eco-service-arch,
+    .eco-integration-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .eco-related-grid {
+        grid-template-columns: 2fr 1fr;
+    }
+
+    .eco-related-grid.eco-related-grid-4 {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (min-width: 1024px) {
+    .eco-shell {
+        width: min(1120px, calc(100% - 4.5rem));
+    }
+
+    .eco-grid-3,
+    .eco-component-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .eco-grid-4 {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .eco-step-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .eco-timeline {
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 1.2rem;
+    }
+
+    .eco-timeline::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 1.25rem;
+        height: 1px;
+        background: rgba(255, 255, 255, 0.08);
+        z-index: 0;
+    }
+
+    .eco-timeline-step {
+        position: relative;
+        z-index: 1;
+    }
+
+    .eco-related-grid {
+        grid-template-columns: 2fr 1fr 1fr;
+    }
+
+    .eco-related-grid.eco-related-grid-4 {
+        grid-template-columns: 2fr 1fr 1fr 1fr;
+    }
+}
+
+@media (max-width: 640px) {
+    .eco-shell {
+        width: calc(100% - 2rem);
+    }
+
+    .eco-section {
+        margin-bottom: 5.2rem;
+    }
+
+    .eco-coming-card {
+        padding: 1.5rem;
+    }
+
+    .eco-visual-card {
+        min-height: 380px;
+    }
+
+    .eco-control-plane {
+        min-height: 360px;
+        padding: 0.5rem;
+    }
+
+    .eco-cp-status {
+        bottom: 1.25rem;
+    }
+
+    .eco-cp-status-line {
+        letter-spacing: 0.22em;
+        font-size: 0.52rem;
+    }
+
+    .eco-cp-status-line-3 {
+        font-size: 0.56rem;
+    }
+
+    .eco-table th,
+    .eco-table td {
+        padding: 1rem;
+    }
+}

@@ -1,0 +1,15 @@
+flowchart LR
+    A[Intent Generation]
+    B[Intent Sanitization]
+    C[Policy Evaluation]
+    D[Fraud Detection]
+    E[MPC Threshold Signing]
+    F[Chain Broadcast]
+
+    A --> B --> C --> D --> E --> F
+
+    classDef stage fill:#0b1324,stroke:#38BDF8,color:#E2F6FF,stroke-width:1px;
+    classDef risk fill:#131a2f,stroke:#7DD3FC,color:#ECFEFF,stroke-width:1.3px;
+
+    class A,B,C,D,E,F stage;
+    class D,E risk;

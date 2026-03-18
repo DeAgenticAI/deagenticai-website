@@ -23,35 +23,6 @@ if ( isset( $ecosystem_settings['control_plane_labels'] ) && is_array( $ecosyste
     }
 }
 
-$faq_schema_entities = array_values(
-    array_filter(
-        array_map(
-            static function ( $faq ) {
-                $question = isset( $faq['question'] ) ? trim( (string) $faq['question'] ) : '';
-                $answer   = isset( $faq['answer'] ) ? trim( (string) $faq['answer'] ) : '';
-
-                return array(
-                    '@type' => 'Question',
-                    'name'  => $question,
-                    'acceptedAnswer' => array(
-                        '@type' => 'Answer',
-                        'text'  => $answer,
-                    ),
-                );
-            },
-            $faqs
-        ),
-        static function ( $faq ) {
-            return '' !== $faq['name'] && '' !== $faq['acceptedAnswer']['text'];
-        }
-    )
-);
-$faq_schema = array(
-    '@context'   => 'https://schema.org',
-    '@type'      => 'FAQPage',
-    'mainEntity' => $faq_schema_entities,
-);
-
 $component_icons = array(
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>',
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"></path><path d="m9 12 2 2 4-4"></path></svg>',
@@ -93,10 +64,6 @@ if ( '' === $logo_uri ) {
 
 get_header();
 ?>
-<script type="application/ld+json">
-<?php echo wp_json_encode( $faq_schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ); ?>
-</script>
-
 <main id="primary" class="site-main eco-page">
     <div class="eco-shell">
         <section class="eco-section eco-hero">

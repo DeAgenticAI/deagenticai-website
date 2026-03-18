@@ -17,7 +17,7 @@ get_header();
             : get_the_excerpt();
 
         $sections = array();
-        foreach (array('aura_pillar', 'aura_guide', 'aura_research', 'aura_update') as $learn_post_type) {
+        foreach (array('aura_pillar', 'aura_guide', 'aura_research', 'aura_update', 'aura_dataset') as $learn_post_type) {
             if (!post_type_exists($learn_post_type)) {
                 continue;
             }

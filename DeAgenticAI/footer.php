@@ -106,6 +106,7 @@ if ( $aura_footer_logo_id ) {
                             <li><a href="<?php echo esc_url( home_url( '/learn/guides' ) ); ?>"><?php esc_html_e( 'Guides', 'aura' ); ?></a></li>
                             <li><a href="<?php echo esc_url( home_url( '/learn/research' ) ); ?>"><?php esc_html_e( 'Research', 'aura' ); ?></a></li>
                             <li><a href="<?php echo esc_url( home_url( '/learn/updates' ) ); ?>"><?php esc_html_e( 'Updates', 'aura' ); ?></a></li>
+                            <li><a href="<?php echo esc_url( home_url( '/learn/datasets' ) ); ?>"><?php esc_html_e( 'Datasets', 'aura' ); ?></a></li>
                         </ul>
                     </div>
 
@@ -114,7 +115,7 @@ if ( $aura_footer_logo_id ) {
                         <h4><?php esc_html_e( 'Company', 'aura' ); ?></h4>
                         <ul>
                             <li><a href="<?php echo esc_url( home_url( '/about' ) ); ?>"><?php esc_html_e( 'About', 'aura' ); ?></a></li>
-                            <li><a href="<?php echo esc_url( home_url( '/learn' ) ); ?>"><?php esc_html_e( 'Learn', 'aura' ); ?></a></li>
+                            <li><a href="<?php echo esc_url( home_url( '/blog' ) ); ?>"><?php esc_html_e( 'Blog', 'aura' ); ?></a></li>
                             <li><a href="<?php echo esc_url( home_url( '/waitlist' ) ); ?>"><?php esc_html_e( 'Waitlist', 'aura' ); ?></a></li>
                         </ul>
                     </div>

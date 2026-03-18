@@ -21,6 +21,7 @@ function aura_get_learn_post_types() {
         'aura_research',
         'aura_update',
         'aura_compare',
+        'aura_dataset',
     );
 }
 
@@ -130,7 +131,27 @@ function aura_register_learn_content_model() {
         'menu_position' => 25,
     ));
 
-    register_taxonomy('aura_learn_topic', aura_get_learn_post_types(), array(
+    register_post_type('aura_dataset', array(
+        'labels' => array(
+            'name' => __('Datasets', 'aura'),
+            'singular_name' => __('Dataset', 'aura'),
+            'add_new_item' => __('Add New Dataset', 'aura'),
+            'edit_item' => __('Edit Dataset', 'aura'),
+        ),
+        'public' => true,
+        'show_ui' => true,
+        'show_in_rest' => true,
+        'supports' => $supports,
+        'rewrite' => array(
+            'slug' => 'learn/datasets',
+            'with_front' => false,
+        ),
+        'has_archive' => 'learn/datasets',
+        'menu_icon' => 'dashicons-database',
+        'menu_position' => 26,
+    ));
+
+    register_taxonomy('aura_learn_topic', array('aura_pillar', 'aura_guide', 'aura_research', 'aura_update', 'aura_compare'), array(
         'labels' => array(
             'name' => __('Learn Topics', 'aura'),
             'singular_name' => __('Learn Topic', 'aura'),
@@ -144,7 +165,7 @@ function aura_register_learn_content_model() {
         ),
     ));
 
-    register_taxonomy('aura_icp_profile', aura_get_learn_post_types(), array(
+    register_taxonomy('aura_icp_profile', array('aura_pillar', 'aura_guide', 'aura_research', 'aura_update', 'aura_compare'), array(
         'labels' => array(
             'name' => __('ICP Profiles', 'aura'),
             'singular_name' => __('ICP Profile', 'aura'),
@@ -165,12 +186,12 @@ add_action('init', 'aura_register_learn_content_model', 9);
  */
 function aura_flush_learn_rewrites_once() {
     $current_version = (int) get_option('aura_learn_rewrite_version', 0);
-    if ($current_version >= 1) {
+    if ($current_version >= 2) {
         return;
     }
 
     flush_rewrite_rules(false);
-    update_option('aura_learn_rewrite_version', 1, false);
+    update_option('aura_learn_rewrite_version', 2, false);
 }
 add_action('init', 'aura_flush_learn_rewrites_once', 40);
 
@@ -212,8 +233,13 @@ function aura_get_learn_archive_meta($post_type) {
             $meta['badge'] = __('Comparison Hub', 'aura');
             $meta['description'] = __('High-intent evaluation pages comparing DeAgenticAI with market alternatives and adjacent approaches.', 'aura');
             $meta['card_label'] = __('Comparison', 'aura');
-            break;
-    }
+                break;
+            case 'aura_dataset':
+                $meta['badge'] = __('Datasets', 'aura');
+                $meta['description'] = __('Structured empirical data on autonomous agent behavior, governance outcomes, and security incident analyses.', 'aura');
+                $meta['card_label'] = __('Dataset', 'aura');
+                break;
+            }
 
     return $meta;
 }
@@ -1988,6 +2014,122 @@ function aura_register_compare_meta_box() {
 add_action('add_meta_boxes_aura_compare', 'aura_register_compare_meta_box');
 
 /**
+ * Keep dataset editor clean (no compare/pillar structured metaboxes).
+ */
+function aura_cleanup_dataset_meta_boxes() {
+    remove_meta_box('aura_compare_structured_fields', 'aura_dataset', 'normal');
+    remove_meta_box('aura_pillar_visual_settings', 'aura_dataset', 'side');
+    remove_meta_box('aura_pillar_faq_fields', 'aura_dataset', 'normal');
+}
+add_action('add_meta_boxes_aura_dataset', 'aura_cleanup_dataset_meta_boxes', 99);
+
+/**
+ * Register dataset metadata meta box.
+ */
+function aura_register_dataset_meta_box() {
+    add_meta_box(
+        'aura_dataset_metadata_fields',
+        __('Dataset Metadata', 'aura'),
+        'aura_render_dataset_meta_box',
+        'aura_dataset',
+        'normal',
+        'high'
+    );
+}
+add_action('add_meta_boxes_aura_dataset', 'aura_register_dataset_meta_box', 10);
+
+/**
+ * Render dataset metadata meta box.
+ *
+ * @param WP_Post $post Current post object.
+ */
+function aura_render_dataset_meta_box($post) {
+    if (!$post instanceof WP_Post) {
+        return;
+    }
+
+    $post_id = (int) $post->ID;
+    wp_nonce_field('aura_dataset_meta_save_' . $post_id, 'aura_dataset_meta_nonce');
+
+    $source_url = (string) get_post_meta($post_id, '_aura_dataset_source_url', true);
+    $download_url = (string) get_post_meta($post_id, '_aura_dataset_download_url', true);
+    $license = (string) get_post_meta($post_id, '_aura_dataset_license', true);
+    $coverage = (string) get_post_meta($post_id, '_aura_dataset_coverage_period', true);
+    $methodology = (string) get_post_meta($post_id, '_aura_dataset_methodology', true);
+    ?>
+    <p class="aura-marketing-note">
+        <?php esc_html_e('Optional metadata for dataset provenance, access, and interpretation context.', 'aura'); ?>
+    </p>
+
+    <div class="aura-marketing-two-col">
+        <div class="aura-marketing-field">
+            <label for="aura-dataset-source-url"><?php esc_html_e('Source URL', 'aura'); ?></label>
+            <input type="url" id="aura-dataset-source-url" name="aura_dataset_source_url" value="<?php echo esc_attr($source_url); ?>" placeholder="https://...">
+        </div>
+        <div class="aura-marketing-field">
+            <label for="aura-dataset-download-url"><?php esc_html_e('Download URL', 'aura'); ?></label>
+            <input type="url" id="aura-dataset-download-url" name="aura_dataset_download_url" value="<?php echo esc_attr($download_url); ?>" placeholder="https://...">
+        </div>
+    </div>
+
+    <div class="aura-marketing-two-col" style="margin-top: 12px;">
+        <div class="aura-marketing-field">
+            <label for="aura-dataset-license"><?php esc_html_e('License', 'aura'); ?></label>
+            <input type="text" id="aura-dataset-license" name="aura_dataset_license" value="<?php echo esc_attr($license); ?>" placeholder="CC BY 4.0 / Proprietary / Internal">
+        </div>
+        <div class="aura-marketing-field">
+            <label for="aura-dataset-coverage"><?php esc_html_e('Coverage Period', 'aura'); ?></label>
+            <input type="text" id="aura-dataset-coverage" name="aura_dataset_coverage_period" value="<?php echo esc_attr($coverage); ?>" placeholder="2024-01 to 2026-03">
+        </div>
+    </div>
+
+    <div class="aura-marketing-field" style="margin-top: 12px;">
+        <label for="aura-dataset-methodology"><?php esc_html_e('Methodology Notes', 'aura'); ?></label>
+        <textarea id="aura-dataset-methodology" name="aura_dataset_methodology" rows="4" placeholder="<?php esc_attr_e('Describe collection process, sampling, and caveats.', 'aura'); ?>"><?php echo esc_textarea($methodology); ?></textarea>
+    </div>
+    <?php
+}
+
+/**
+ * Save dataset metadata meta box values.
+ *
+ * @param int $post_id Post ID.
+ */
+function aura_save_dataset_meta_box($post_id) {
+    $post_id = (int) $post_id;
+
+    if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
+        return;
+    }
+
+    if (!current_user_can('edit_post', $post_id)) {
+        return;
+    }
+
+    if (!isset($_POST['aura_dataset_meta_nonce'])) {
+        return;
+    }
+
+    $nonce = sanitize_text_field(wp_unslash((string) $_POST['aura_dataset_meta_nonce']));
+    if (!wp_verify_nonce($nonce, 'aura_dataset_meta_save_' . $post_id)) {
+        return;
+    }
+
+    $source_url = isset($_POST['aura_dataset_source_url']) ? esc_url_raw(wp_unslash((string) $_POST['aura_dataset_source_url'])) : '';
+    $download_url = isset($_POST['aura_dataset_download_url']) ? esc_url_raw(wp_unslash((string) $_POST['aura_dataset_download_url'])) : '';
+    $license = isset($_POST['aura_dataset_license']) ? sanitize_text_field(wp_unslash((string) $_POST['aura_dataset_license'])) : '';
+    $coverage = isset($_POST['aura_dataset_coverage_period']) ? sanitize_text_field(wp_unslash((string) $_POST['aura_dataset_coverage_period'])) : '';
+    $methodology = isset($_POST['aura_dataset_methodology']) ? sanitize_textarea_field(wp_unslash((string) $_POST['aura_dataset_methodology'])) : '';
+
+    aura_compare_update_meta($post_id, '_aura_dataset_source_url', $source_url);
+    aura_compare_update_meta($post_id, '_aura_dataset_download_url', $download_url);
+    aura_compare_update_meta($post_id, '_aura_dataset_license', $license);
+    aura_compare_update_meta($post_id, '_aura_dataset_coverage_period', $coverage);
+    aura_compare_update_meta($post_id, '_aura_dataset_methodology', $methodology);
+}
+add_action('save_post_aura_dataset', 'aura_save_dataset_meta_box', 10, 1);
+
+/**
  * Render compare structured-content meta box.
  *
  * @param WP_Post $post Current post object.
@@ -2210,7 +2352,496 @@ function aura_save_compare_meta_box($post_id) {
 add_action('save_post_aura_compare', 'aura_save_compare_meta_box', 10, 1);
 
 /**
- * Seed default Learn and Compare drafts once.
+ * Build HTML list markup for seed content.
+ *
+ * @param array<int,string> $items Seed list items.
+ * @param string            $tag List tag.
+ * @return string
+ */
+function aura_get_learn_seed_html_list($items, $tag = 'ul') {
+    $tag = ('ol' === strtolower((string) $tag)) ? 'ol' : 'ul';
+    $rows = array();
+
+    if (!is_array($items)) {
+        return '';
+    }
+
+    foreach ($items as $item) {
+        $label = trim((string) $item);
+        if ('' === $label) {
+            continue;
+        }
+
+        $rows[] = '<li>' . esc_html($label) . '</li>';
+    }
+
+    if (empty($rows)) {
+        return '';
+    }
+
+    array_unshift($rows, '<' . $tag . '>');
+    $rows[] = '</' . $tag . '>';
+
+    return implode("\n", $rows);
+}
+
+/**
+ * Canonical guide, research, and update seed defaults.
+ *
+ * @return array<string,array<string,array<string,mixed>>>
+ */
+function aura_get_learn_editorial_seed_map() {
+    return array(
+        'aura_guide' => array(
+            'what-is-mpc' => array(
+                'title' => 'What Is MPC for AI Agent Custody?',
+                'excerpt' => 'Explain how threshold signing changes key exposure, recovery, and operational control assumptions for autonomous agents.',
+                'summary' => 'This guide explains why Multi-Party Computation is the baseline custody primitive for autonomous agent systems that must move capital without ever reconstructing a full private key.',
+                'question' => 'Which custody risks disappear with threshold signing, and which governance risks remain above the signing layer?',
+                'inputs' => array(
+                    'Document the chains, wallets, and agent workflows that need signatures.',
+                    'List the human escalation paths for high-risk or off-policy actions.',
+                    'Capture any latency targets that would force fast-path criteria.',
+                ),
+                'steps' => array(
+                    'Map the current signing boundary: identify where keys exist today, who can approve, and where AI systems can trigger transactions.',
+                    'Define the threshold model: choose node distribution, quorum assumptions, and recovery requirements before comparing vendors or protocols.',
+                    'Separate cryptographic custody from policy enforcement: note that MPC protects key material, but it does not decide whether an intent should be approved.',
+                    'Document fallback and recovery paths: include emergency pause, hardware-backed shares, and operator intervention routes.',
+                ),
+                'checks' => array(
+                    'No architecture diagram shows a full private key being reconstructed or exported.',
+                    'Each execution lane has a clear policy owner and escalation owner.',
+                    'Latency claims are measured end-to-end, not just at signature generation.',
+                ),
+                'related' => array(
+                    'MPC, Security & Fast-Path Execution',
+                    'Intent-Evaluated MPC',
+                    'Hardware-Hybrid Custody',
+                ),
+            ),
+            'threshold-signatures' => array(
+                'title' => 'Implementing Threshold Signatures for Agent Wallets',
+                'excerpt' => 'Draft an implementation walkthrough for distributing key shares, selecting quorum rules, and wiring policy-aware signing into agent execution paths.',
+                'summary' => 'Use this guide to turn threshold-signing theory into an implementation plan for production agent wallets.',
+                'question' => 'How do you move from a single signing service to distributed threshold signing without breaking developer ergonomics or auditability?',
+                'inputs' => array(
+                    'Target wallet or account model by chain.',
+                    'Expected signer or node topology and failure tolerance.',
+                    'Policy engine inputs required before a signature is requested.',
+                ),
+                'steps' => array(
+                    'Design the share distribution model and quorum assumptions.',
+                    'Insert policy and fraud evaluation before the signature request is broadcast to the node set.',
+                    'Instrument partial-signature coordination, retries, and failure logging.',
+                    'Run staged benchmarks for full-path and degraded-node scenarios.',
+                ),
+                'checks' => array(
+                    'Node compromise assumptions are explicit and tested.',
+                    'Signature orchestration logs capture policy hash, intent hash, and broadcast result.',
+                    'Disaster recovery does not weaken the threshold model.',
+                ),
+                'related' => array(
+                    'MPC vs Multisig for AI Agents',
+                    'Policy DSL',
+                    'Fast-Path Execution',
+                ),
+            ),
+            'prompt-injection-defenses' => array(
+                'title' => 'Prompt Injection Defenses for Autonomous Agent Wallets',
+                'excerpt' => 'Structure the pre-execution pipeline that validates agent intents before policy evaluation or signing begins.',
+                'summary' => 'This guide frames Intent Sanitization as the security boundary that must operate before any policy or signing logic receives an agent-generated action.',
+                'question' => 'Which structural, semantic, and contextual checks should block an adversarial or malformed intent before it reaches the wallet?',
+                'inputs' => array(
+                    'Agent intent sources and tools.',
+                    'Normalization rules for addresses, spend amounts, and protocol identifiers.',
+                    'Known escalation triggers and deny conditions.',
+                ),
+                'steps' => array(
+                    'Normalize the raw intent into a canonical schema.',
+                    'Verify identity, origin, and context before trusting the request.',
+                    'Run semantic validation against allowed action types and account state.',
+                    'Only hand sanitized payloads to policy evaluation and downstream signing services.',
+                ),
+                'checks' => array(
+                    'Sanitization failures are logged with precise reject reasons.',
+                    'No downstream signer can be called with raw model output.',
+                    'Red-team prompts are part of regression testing.',
+                ),
+                'related' => array(
+                    'Intent Sanitization',
+                    'Agentic Policy & Authority Enforcement',
+                    'Prompt Injection Attacks on AI Agents and Intent Sanitization Defenses',
+                ),
+            ),
+            'safe-policy-rollouts' => array(
+                'title' => 'Designing Safe Policy Rollouts for Autonomous Financial Agents',
+                'excerpt' => 'Document how to ship new policy rules gradually, audit decision changes, and preserve rollback paths for governed agent execution.',
+                'summary' => 'Use this guide to publish operational playbooks for policy changes so new agent permissions are introduced without widening blast radius.',
+                'question' => 'How should teams stage policy updates when a rule change can affect spending limits, protocol allowlists, or escalation thresholds?',
+                'inputs' => array(
+                    'Existing policy versions and hash references.',
+                    'Historical intent samples to replay.',
+                    'Rollback criteria and approver ownership.',
+                ),
+                'steps' => array(
+                    'Version each policy bundle and label the intended rollout cohort.',
+                    'Replay historical intents against the proposed rules before production promotion.',
+                    'Start with a narrow lane and compare approvals, denials, and escalations against the prior policy.',
+                    'Promote the new policy only after audit and operator review confirm expected behavior.',
+                ),
+                'checks' => array(
+                    'Every published policy has a rollback path.',
+                    'Change logs show what limit or allowlist changed and why.',
+                    'Operational owners can explain the difference between rejected and escalated intents.',
+                ),
+                'related' => array(
+                    'Policy DSL',
+                    'Agentic Policy & Authority Enforcement',
+                    'DAO Treasury Automation',
+                ),
+            ),
+        ),
+        'aura_research' => array(
+            'fast-path-mpc-benchmarks' => array(
+                'title' => 'Benchmarking Fast-Path MPC for Sub-100ms Agent Execution',
+                'excerpt' => 'Outline the latency, fallback, and safety measurements needed to evaluate fast-path MPC for routine autonomous actions.',
+                'summary' => 'This research draft should quantify when fast-path execution improves operational responsiveness without weakening policy or fraud controls.',
+                'question' => 'Under what workload, node topology, and policy conditions does fast-path MPC reliably stay below the target latency envelope?',
+                'methodology' => array(
+                    'Define comparable benchmarks for full MPC, fast-path MPC, and any alternative signing stack.',
+                    'Measure end-to-end intent-to-broadcast latency rather than isolated signing time.',
+                    'Track fallback rates when a request no longer qualifies for fast-path execution.',
+                    'Record failure modes, retry behavior, and policy-decision latency under load.',
+                ),
+                'observations' => array(
+                    'Latency results are only meaningful when policy evaluation and fraud checks are included.',
+                    'Fast-path value depends on how often requests remain inside the low-risk lane.',
+                    'Fallback behavior may matter more than peak performance for production operators.',
+                ),
+                'implications' => 'Use the final published version to explain where fast-path should be enabled, where standard MPC remains mandatory, and how operators should monitor both paths.',
+                'next_questions' => array(
+                    'Which workloads produce the highest safe fast-path hit rate?',
+                    'How does node geography affect latency variance?',
+                    'What telemetry should trigger automatic reclassification from fast-path to full-path?',
+                ),
+            ),
+            'policy-evidence-chains' => array(
+                'title' => 'Policy Evidence Chains for Autonomous Agent Audits',
+                'excerpt' => 'Build a research note on the data model and audit artifacts needed to defend policy-controlled agent execution in regulated environments.',
+                'summary' => 'This research note should define the evidence chain from sanitized intent to policy hash, fraud score, threshold signature, and final transaction record.',
+                'question' => 'What minimum evidence set allows an auditor to reconstruct why an autonomous agent action was approved, escalated, or blocked?',
+                'methodology' => array(
+                    'Inventory every event emitted across the execution sequence.',
+                    'Map each event to the compliance or audit question it answers.',
+                    'Test whether an independent reviewer can rebuild the decision path from stored artifacts alone.',
+                    'Identify retention, tamper-evidence, and redaction constraints.',
+                ),
+                'observations' => array(
+                    'Logs that omit policy version or intent context create weak audit narratives.',
+                    'Evidence quality depends on consistent identifiers across services.',
+                    'Human escalations need the same traceability as machine-approved actions.',
+                ),
+                'implications' => 'The final article should help institutional buyers understand that compliance is an architectural layer, not a reporting overlay added after execution.',
+                'next_questions' => array(
+                    'Which fields belong in immutable logs versus analyst dashboards?',
+                    'How should privacy constraints shape audit exports?',
+                    'What evidence should be available in real time versus post-incident?',
+                ),
+            ),
+            'rwa-agent-mandates' => array(
+                'title' => 'Policy-Limited Agent Mandates for Tokenized RWA Portfolios',
+                'excerpt' => 'Evaluate how institutional teams can grant bounded authority to agents managing tokenized assets without collapsing governance or compliance controls.',
+                'summary' => 'This draft explores how tokenized asset operations differ from DeFi-native workflows when agent authority, valuation cadence, and reporting requirements must stay bounded.',
+                'question' => 'How should institutions define agent mandates for tokenized asset portfolios so execution remains useful but tightly scoped?',
+                'methodology' => array(
+                    'Compare recurring portfolio operations against exceptional events that require human review.',
+                    'Document mandate boundaries for spend, counterparties, valuation triggers, and time windows.',
+                    'Stress-test the policy model against stale data, valuation shocks, and unavailable operators.',
+                    'Map every mandate to required oversight artifacts and continuity procedures.',
+                ),
+                'observations' => array(
+                    'RWA workflows usually require narrower authority than speculative trading systems.',
+                    'Operational value comes from predictable recurring actions, not broad discretionary power.',
+                    'Continuity and beneficiary controls matter more when assets represent off-chain obligations.',
+                ),
+                'implications' => 'Use the published piece to connect RWA operations with Hardware-Hybrid Custody, Inheritance Protocol, and enterprise policy approval paths.',
+                'next_questions' => array(
+                    'Which portfolio actions should never be delegated?',
+                    'How frequently should mandates be re-approved?',
+                    'What signals should force valuation-driven escalation?',
+                ),
+            ),
+            'cross-jurisdiction-governance' => array(
+                'title' => 'Cross-Jurisdiction Agent Governance Comparison Framework',
+                'excerpt' => 'Compare how different regulatory environments shape policy controls, evidence requirements, and escalation models for autonomous agent deployments.',
+                'summary' => 'This research note should compare how governance expectations shift across jurisdictions without reducing the product narrative to generic compliance slogans.',
+                'question' => 'Which governance and audit controls stay constant across jurisdictions, and which ones require region-specific policy or evidence adaptations?',
+                'methodology' => array(
+                    'Choose a small set of target jurisdictions and list the operational obligations most relevant to autonomous financial agents.',
+                    'Compare identity, reporting, incident-response, and delegation expectations.',
+                    'Map common controls that can be standardized across regions.',
+                    'Identify which policy fragments should remain local or institution-specific.',
+                ),
+                'observations' => array(
+                    'The most portable controls are identity, policy versioning, and signed audit trails.',
+                    'Local variation often appears in escalation timing and reporting detail.',
+                    'A shared control plane still needs regional policy overlays.',
+                ),
+                'implications' => 'Publish the finished note as a decision aid for enterprise teams planning staged multi-region deployments.',
+                'next_questions' => array(
+                    'Which controls can be centralized safely?',
+                    'Where do local teams need override authority?',
+                    'How should cross-border evidence export be designed?',
+                ),
+            ),
+        ),
+        'aura_update' => array(
+            'execution-visualization-and-control-surfaces' => array(
+                'title' => 'Execution Visualization and Control-Surface Improvements',
+                'excerpt' => 'Draft release note covering updates to the Happy Path narrative, operator-facing control explanations, and page-level supporting visuals.',
+                'summary' => 'Use this update draft to summarize changes that make the execution sequence easier to understand across pillars, ecosystem content, and supporting pages.',
+                'changes' => array(
+                    'Refined the Happy Path sequence narrative so each enforcement step has a clearer role.',
+                    'Improved the language around authority boundaries, policy decisions, and signing checkpoints.',
+                    'Added supporting visual context for pages that explain execution flow or control surfaces.',
+                ),
+                'why' => 'This update matters because buyers need a crisp mental model of where intent validation ends and cryptographic authority enforcement begins.',
+                'followups' => array(
+                    'Add screenshots or diagrams once the final visual assets are approved.',
+                    'Link to the pillar pages that explain the affected steps in more detail.',
+                    'Replace placeholder phrasing with exact shipped changes and any measured improvements.',
+                ),
+                'inputs' => array(
+                    'Release date',
+                    'Screenshots or SVG diffs',
+                    'Affected URLs',
+                    'Any copy or UX metrics worth citing',
+                ),
+            ),
+            'dataset-archive-and-knowledge-index' => array(
+                'title' => 'Dataset Archive and Knowledge Index Progress',
+                'excerpt' => 'Draft release note for the dataset archive, machine-readable knowledge files, and structured-data improvements supporting discovery.',
+                'summary' => 'Use this update to document shipping progress around datasets, root-level machine-readable resources, and schema coverage.',
+                'changes' => array(
+                    'Prepared the dataset archive foundation for structured empirical resources.',
+                    'Expanded machine-readable files such as llms.txt, ai.txt, and the knowledge index.',
+                    'Aligned schema coverage so learn content types have clearer search-engine and AI-discovery signals.',
+                ),
+                'why' => 'This work improves how both human readers and retrieval systems understand the site\'s primary entities, supporting resources, and canonical references.',
+                'followups' => array(
+                    'Confirm live URLs and file contents before publication.',
+                    'Add notes on any crawler or sitemap changes once deployed.',
+                    'Reference the dataset archive or glossary entries that became newly available.',
+                ),
+                'inputs' => array(
+                    'Deployment date',
+                    'Live URLs',
+                    'Sitemap or Search Console updates',
+                    'Any validator screenshots',
+                ),
+            ),
+            'publishing-workflows-and-editorial-scaffolding' => array(
+                'title' => 'Publishing Workflows and Editorial Scaffolding',
+                'excerpt' => 'Draft release note covering new publishing scaffolds for guides, research, and updates so content can be edited in wp-admin without custom metabox dependencies.',
+                'summary' => 'Use this update to explain how the learn library publishing workflow became easier to manage through draft scaffolding and cleaner editorial defaults.',
+                'changes' => array(
+                    'Seeded draft entries for technical guides, research notes, and updates so editors can start from structured copy instead of empty screens.',
+                    'Preserved the existing compare and pillar workflows while avoiding destructive changes to authored content.',
+                    'Kept schema generation in theme code so editorial tooling stays separate from SEO plugin configuration.',
+                ),
+                'why' => 'This matters because the editorial bottleneck was not rendering or schema, it was the absence of a usable starting point inside wp-admin for certain CPTs.',
+                'followups' => array(
+                    'Replace the placeholder language with the exact titles that were published.',
+                    'Note any taxonomy, internal-linking, or review-process changes that followed.',
+                    'Add before-and-after screenshots of the edit experience if helpful.',
+                ),
+                'inputs' => array(
+                    'Affected CPTs',
+                    'Seeded draft list',
+                    'Any editorial QA notes',
+                    'Publication dates',
+                ),
+            ),
+        ),
+    );
+}
+
+/**
+ * Build seed entries for a learn post type.
+ *
+ * @param string $post_type Post type slug.
+ * @return array<int,array<string,string>>
+ */
+function aura_get_learn_editorial_seed_entries($post_type) {
+    $post_type = sanitize_key((string) $post_type);
+    $seed_map = aura_get_learn_editorial_seed_map();
+    $entries = array();
+
+    if (!isset($seed_map[$post_type]) || !is_array($seed_map[$post_type])) {
+        return $entries;
+    }
+
+    foreach ($seed_map[$post_type] as $slug => $payload) {
+        if (!is_array($payload)) {
+            continue;
+        }
+
+        $title = isset($payload['title']) ? trim((string) $payload['title']) : '';
+        if ('' === $title) {
+            continue;
+        }
+
+        $entries[] = array(
+            'slug' => sanitize_title((string) $slug),
+            'title' => $title,
+            'excerpt' => isset($payload['excerpt']) ? (string) $payload['excerpt'] : '',
+        );
+    }
+
+    return $entries;
+}
+
+/**
+ * Resolve seed payload for a learn post type and slug.
+ *
+ * @param string $post_type Post type slug.
+ * @param string $slug Post slug.
+ * @return array<string,mixed>
+ */
+function aura_get_learn_editorial_seed_payload($post_type, $slug) {
+    $post_type = sanitize_key((string) $post_type);
+    $slug = sanitize_title((string) $slug);
+    $seed_map = aura_get_learn_editorial_seed_map();
+
+    if (isset($seed_map[$post_type][$slug]) && is_array($seed_map[$post_type][$slug])) {
+        return $seed_map[$post_type][$slug];
+    }
+
+    return array();
+}
+
+/**
+ * Build editorial seed content for guides, research notes, and updates.
+ *
+ * @param string              $post_type Post type slug.
+ * @param array<string,mixed> $entry Entry payload.
+ * @return string
+ */
+function aura_get_learn_editorial_seed_content($post_type, $entry) {
+    $slug = isset($entry['slug']) ? (string) $entry['slug'] : '';
+    $payload = aura_get_learn_editorial_seed_payload($post_type, $slug);
+    if (empty($payload)) {
+        return '';
+    }
+
+    $summary = isset($payload['summary']) ? trim((string) $payload['summary']) : '';
+    $question = isset($payload['question']) ? trim((string) $payload['question']) : '';
+    $content = array();
+
+    if ('' !== $summary) {
+        $content[] = '<p>' . esc_html($summary) . '</p>';
+    }
+
+    switch ((string) $post_type) {
+        case 'aura_guide':
+            $content[] = '<p>Use this draft as the implementation version of the surrounding pillar material. Replace the placeholders below with environment-specific commands, screenshots, metrics, and internal links before publication.</p>';
+
+            if ('' !== $question) {
+                $content[] = '<h2>Operator Question</h2>';
+                $content[] = '<p>' . esc_html($question) . '</p>';
+            }
+
+            $inputs_html = aura_get_learn_seed_html_list(isset($payload['inputs']) ? $payload['inputs'] : array(), 'ul');
+            if ('' !== $inputs_html) {
+                $content[] = '<h2>Recommended Inputs</h2>';
+                $content[] = $inputs_html;
+            }
+
+            $steps_html = aura_get_learn_seed_html_list(isset($payload['steps']) ? $payload['steps'] : array(), 'ol');
+            if ('' !== $steps_html) {
+                $content[] = '<h2>Implementation Path</h2>';
+                $content[] = $steps_html;
+            }
+
+            $checks_html = aura_get_learn_seed_html_list(isset($payload['checks']) ? $payload['checks'] : array(), 'ul');
+            if ('' !== $checks_html) {
+                $content[] = '<h2>Control Checks</h2>';
+                $content[] = $checks_html;
+            }
+
+            $related_html = aura_get_learn_seed_html_list(isset($payload['related']) ? $payload['related'] : array(), 'ul');
+            if ('' !== $related_html) {
+                $content[] = '<h2>Related Reading</h2>';
+                $content[] = $related_html;
+            }
+            break;
+
+        case 'aura_research':
+            $content[] = '<p>Use this research scaffold to add benchmark data, citations, methodology detail, and any charts or tables before publication.</p>';
+
+            if ('' !== $question) {
+                $content[] = '<h2>Research Question</h2>';
+                $content[] = '<p>' . esc_html($question) . '</p>';
+            }
+
+            $methodology_html = aura_get_learn_seed_html_list(isset($payload['methodology']) ? $payload['methodology'] : array(), 'ul');
+            if ('' !== $methodology_html) {
+                $content[] = '<h2>Methodology Outline</h2>';
+                $content[] = $methodology_html;
+            }
+
+            $observations_html = aura_get_learn_seed_html_list(isset($payload['observations']) ? $payload['observations'] : array(), 'ul');
+            if ('' !== $observations_html) {
+                $content[] = '<h2>Preliminary Observations</h2>';
+                $content[] = $observations_html;
+            }
+
+            if (!empty($payload['implications'])) {
+                $content[] = '<h2>Implications</h2>';
+                $content[] = '<p>' . esc_html((string) $payload['implications']) . '</p>';
+            }
+
+            $next_questions_html = aura_get_learn_seed_html_list(isset($payload['next_questions']) ? $payload['next_questions'] : array(), 'ul');
+            if ('' !== $next_questions_html) {
+                $content[] = '<h2>Next Questions</h2>';
+                $content[] = $next_questions_html;
+            }
+            break;
+
+        case 'aura_update':
+            $content[] = '<p>Use this draft to capture shipped work, scope changes, or milestone progress. Replace the placeholders with exact dates, screenshots, links, and operator-facing impact before publication.</p>';
+
+            $changes_html = aura_get_learn_seed_html_list(isset($payload['changes']) ? $payload['changes'] : array(), 'ul');
+            if ('' !== $changes_html) {
+                $content[] = '<h2>What Changed</h2>';
+                $content[] = $changes_html;
+            }
+
+            if (!empty($payload['why'])) {
+                $content[] = '<h2>Why It Matters</h2>';
+                $content[] = '<p>' . esc_html((string) $payload['why']) . '</p>';
+            }
+
+            $followups_html = aura_get_learn_seed_html_list(isset($payload['followups']) ? $payload['followups'] : array(), 'ul');
+            if ('' !== $followups_html) {
+                $content[] = '<h2>Editorial Follow-Ups</h2>';
+                $content[] = $followups_html;
+            }
+
+            $inputs_html = aura_get_learn_seed_html_list(isset($payload['inputs']) ? $payload['inputs'] : array(), 'ul');
+            if ('' !== $inputs_html) {
+                $content[] = '<h2>Release Notes Inputs</h2>';
+                $content[] = $inputs_html;
+            }
+            break;
+    }
+
+    return implode("\n", $content);
+}
+
+/**
+ * Seed default learn-library drafts once.
  */
 function aura_seed_learn_content() {
     if (!post_type_exists('aura_pillar') || !post_type_exists('aura_compare')) {
@@ -2218,7 +2849,7 @@ function aura_seed_learn_content() {
     }
 
     $seed_version = (int) get_option('aura_learn_seed_version', 0);
-    if ($seed_version >= 4) {
+    if ($seed_version >= 5) {
         return;
     }
 
@@ -2300,7 +2931,19 @@ function aura_seed_learn_content() {
         aura_seed_compare_entry_meta($post_id, $entry);
     }
 
-    update_option('aura_learn_seed_version', 4, false);
+    foreach (array('aura_guide', 'aura_research', 'aura_update') as $editorial_post_type) {
+        if (!post_type_exists($editorial_post_type)) {
+            continue;
+        }
+
+        $editorial_entries = aura_get_learn_editorial_seed_entries($editorial_post_type);
+        foreach ($editorial_entries as $entry) {
+            $editorial_content = aura_get_learn_editorial_seed_content($editorial_post_type, $entry);
+            aura_seed_single_learn_entry($editorial_post_type, $entry, $editorial_content);
+        }
+    }
+
+    update_option('aura_learn_seed_version', 5, false);
 }
 add_action('init', 'aura_seed_learn_content', 30);
 
@@ -2440,7 +3083,10 @@ function aura_seed_learn_hub_content($page_id) {
  * Output schema for Learn and Compare post types.
  */
 function aura_output_learn_content_schema() {
-    if (!aura_should_output_theme_seo_tags()) {
+    // Article-family schemas (Article, TechArticle, ScholarlyArticle, NewsArticle)
+    // are now emitted by inc/schema.php (dea_pillar_schema, dea_guide_schema,
+    // dea_research_schema, dea_compare_schema). Only FAQPage blocks remain here.
+    if (!aura_should_output_theme_schema_tags()) {
         return;
     }
 
@@ -2454,83 +3100,6 @@ function aura_output_learn_content_schema() {
     }
 
     $post_type = get_post_type($post_id);
-    $schema_type = 'Article';
-
-    if ('aura_guide' === $post_type) {
-        $schema_type = 'TechArticle';
-    } elseif ('aura_research' === $post_type) {
-        $schema_type = 'ScholarlyArticle';
-    } elseif ('aura_update' === $post_type) {
-        $schema_type = 'NewsArticle';
-    }
-
-    $headline = get_the_title($post_id);
-    $description = aura_normalize_meta_text(aura_get_learn_entry_excerpt($post_id, 48), 220);
-    $org_url = function_exists('aura_get_content') ? aura_get_content('org_url', home_url('/')) : home_url('/');
-    if ('' === trim($org_url)) {
-        $org_url = home_url('/');
-    }
-
-    $schema = array(
-        '@context' => 'https://schema.org',
-        '@type' => $schema_type,
-        'headline' => $headline,
-        'description' => $description,
-        'datePublished' => get_post_time('c', true, $post_id),
-        'dateModified' => get_post_modified_time('c', true, $post_id),
-        'mainEntityOfPage' => get_permalink($post_id),
-        'author' => array(
-            '@type' => 'Person',
-            'name' => get_the_author_meta('display_name', (int) get_post_field('post_author', $post_id)),
-        ),
-        'publisher' => array(
-            '@type' => 'Organization',
-            '@id' => trailingslashit($org_url) . '#organization',
-            'name' => get_bloginfo('name'),
-        ),
-    );
-
-    if ('TechArticle' === $schema_type) {
-        $schema['proficiencyLevel'] = 'Intermediate';
-    }
-
-    $image = get_the_post_thumbnail_url($post_id, 'full');
-    if ($image) {
-        $schema['image'] = $image;
-    }
-
-    $compare_payload = array();
-    if ('aura_compare' === $post_type) {
-        $compare_payload = aura_get_compare_payload($post_id);
-
-        $mentions = array();
-        foreach (array('entity_left', 'entity_right') as $entity_key) {
-            $entity_name = isset($compare_payload[$entity_key]) ? trim((string) $compare_payload[$entity_key]) : '';
-            if ('' !== $entity_name) {
-                $mentions[] = array(
-                    '@type' => 'Thing',
-                    'name' => $entity_name,
-                );
-            }
-        }
-
-        if (!empty($mentions)) {
-            $schema['mentions'] = $mentions;
-        }
-
-        $primary_question = isset($compare_payload['primary_question']) ? trim((string) $compare_payload['primary_question']) : '';
-        if ('' !== $primary_question) {
-            $schema['mainEntity'] = array(
-                '@type' => 'Question',
-                'name' => $primary_question,
-            );
-        }
-
-        $frame = isset($compare_payload['frame']) ? trim((string) $compare_payload['frame']) : '';
-        $schema['about'] = '' !== $frame ? $frame : __('Comparison analysis for AI agent infrastructure choices.', 'aura');
-    }
-
-    echo '<script type="application/ld+json">' . wp_json_encode($schema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . '</script>' . "\n";
 
     if ('aura_compare' === $post_type) {
         $faq_entities = aura_get_compare_faq_schema_entities($post_id);

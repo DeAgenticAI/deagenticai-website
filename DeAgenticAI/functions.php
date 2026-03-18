@@ -19,6 +19,15 @@ require_once get_template_directory() . '/inc/site-settings.php';
 require_once get_template_directory() . '/inc/site-settings-page-tabs.php';
 require_once get_template_directory() . '/inc/learn-content.php';
 require_once get_template_directory() . '/inc/agentic-lifecycle.php';
+require_once get_template_directory() . '/inc/schema.php';
+
+// Disable all Rank Math schema output. Theme-owned JSON-LD in inc/schema.php is canonical.
+add_filter( 'rank_math/schema/markup', function( $schema ) {
+    if ( is_admin() ) {
+        return $schema;
+    }
+    return false;
+} );
 
 /**
  * Theme setup
@@ -51,8 +60,6 @@ function aura_setup() {
     // Register navigation menus
     register_nav_menus(array(
         'primary' => __('Primary Menu', 'aura'),
-        'footer_platform' => __('Footer Platform', 'aura'),
-        'footer_company' => __('Footer Company', 'aura'),
     ));
 
     // Create default pages on theme activation
@@ -201,7 +208,7 @@ function aura_create_default_pages() {
     }
 
     if ($primary_menu_id > 0) {
-        // Seed in display order: Ecosystem, Solutions, Learn, Glossary, Compare, About.
+        // Seed in display order: Ecosystem, About, Learn, Solutions, Glossary.
         if ($ecosystem && !aura_menu_has_page_item($primary_menu_id, (int) $ecosystem->ID)) {
             wp_update_nav_menu_item($primary_menu_id, 0, array(
                 'menu-item-object' => 'page',
@@ -212,12 +219,12 @@ function aura_create_default_pages() {
             ));
         }
 
-        if ($solutions && !aura_menu_has_page_item($primary_menu_id, (int) $solutions->ID)) {
+        if ($about && !aura_menu_has_page_item($primary_menu_id, (int) $about->ID)) {
             wp_update_nav_menu_item($primary_menu_id, 0, array(
                 'menu-item-object' => 'page',
-                'menu-item-object-id' => $solutions->ID,
+                'menu-item-object-id' => $about->ID,
                 'menu-item-type' => 'post_type',
-                'menu-item-title' => 'Solutions',
+                'menu-item-title' => 'About',
                 'menu-item-status' => 'publish',
             ));
         }
@@ -232,6 +239,16 @@ function aura_create_default_pages() {
             ));
         }
 
+        if ($solutions && !aura_menu_has_page_item($primary_menu_id, (int) $solutions->ID)) {
+            wp_update_nav_menu_item($primary_menu_id, 0, array(
+                'menu-item-object' => 'page',
+                'menu-item-object-id' => $solutions->ID,
+                'menu-item-type' => 'post_type',
+                'menu-item-title' => 'Solutions',
+                'menu-item-status' => 'publish',
+            ));
+        }
+
         if ($glossary && !aura_menu_has_page_item($primary_menu_id, (int) $glossary->ID)) {
             wp_update_nav_menu_item($primary_menu_id, 0, array(
                 'menu-item-object' => 'page',
@@ -241,136 +258,10 @@ function aura_create_default_pages() {
                 'menu-item-status' => 'publish',
             ));
         }
-
-        if (!aura_menu_has_url_item($primary_menu_id, home_url('/compare'))) {
-            wp_update_nav_menu_item($primary_menu_id, 0, array(
-                'menu-item-type' => 'custom',
-                'menu-item-url' => home_url('/compare'),
-                'menu-item-title' => 'Compare',
-                'menu-item-status' => 'publish',
-            ));
-        }
-
-        if ($about && !aura_menu_has_page_item($primary_menu_id, (int) $about->ID)) {
-            wp_update_nav_menu_item($primary_menu_id, 0, array(
-                'menu-item-object' => 'page',
-                'menu-item-object-id' => $about->ID,
-                'menu-item-type' => 'post_type',
-                'menu-item-title' => 'About',
-                'menu-item-status' => 'publish',
-            ));
-        }
     }
     
-    // Create footer platform menu
-    $footer_platform_menu_name = 'Footer Platform';
-    $footer_platform_menu_exists = wp_get_nav_menu_object($footer_platform_menu_name);
-    
-    if (!$footer_platform_menu_exists) {
-        $footer_platform_menu_id = wp_create_nav_menu($footer_platform_menu_name);
-        
-        // Ecosystem
-        wp_update_nav_menu_item($footer_platform_menu_id, 0, array(
-            'menu-item-title' => 'Ecosystem',
-            'menu-item-url' => home_url('/ecosystem'),
-            'menu-item-status' => 'publish'
-        ));
-        
-        // Solutions
-        wp_update_nav_menu_item($footer_platform_menu_id, 0, array(
-            'menu-item-title' => 'Solutions',
-            'menu-item-url' => home_url('/solutions'),
-            'menu-item-status' => 'publish'
-        ));
-        
-        // Glossary
-        wp_update_nav_menu_item($footer_platform_menu_id, 0, array(
-            'menu-item-title' => 'Glossary',
-            'menu-item-url' => home_url('/glossary'),
-            'menu-item-status' => 'publish'
-        ));
-        
-        // Documentation
-        wp_update_nav_menu_item($footer_platform_menu_id, 0, array(
-            'menu-item-title' => 'Documentation',
-            'menu-item-url' => '#',
-            'menu-item-status' => 'publish'
-        ));
-        
-        // Set footer platform menu location
-        $locations = get_theme_mod('nav_menu_locations');
-        $locations['footer_platform'] = $footer_platform_menu_id;
-        set_theme_mod('nav_menu_locations', $locations);
-    }
-    
-    // Create footer company menu
-    $footer_company_menu_name = 'Footer Company';
-    $footer_company_menu_exists = wp_get_nav_menu_object($footer_company_menu_name);
-    
-    if (!$footer_company_menu_exists) {
-        $footer_company_menu_id = wp_create_nav_menu($footer_company_menu_name);
-        
-        // About
-        if ($about) {
-            wp_update_nav_menu_item($footer_company_menu_id, 0, array(
-                'menu-item-object' => 'page',
-                'menu-item-object-id' => $about->ID,
-                'menu-item-type' => 'post_type',
-                'menu-item-title' => 'About',
-                'menu-item-status' => 'publish'
-            ));
-        } else {
-            wp_update_nav_menu_item($footer_company_menu_id, 0, array(
-                'menu-item-title' => 'About',
-                'menu-item-url' => home_url('/about'),
-                'menu-item-status' => 'publish'
-            ));
-        }
-        
-        // Blog
-        if ($blog) {
-            wp_update_nav_menu_item($footer_company_menu_id, 0, array(
-                'menu-item-object' => 'page',
-                'menu-item-object-id' => $blog->ID,
-                'menu-item-type' => 'post_type',
-                'menu-item-title' => 'Blog',
-                'menu-item-status' => 'publish'
-            ));
-        }
-        
-        // Set footer company menu location
-        $locations = get_theme_mod('nav_menu_locations');
-        $locations['footer_company'] = $footer_company_menu_id;
-        set_theme_mod('nav_menu_locations', $locations);
-    }
-}
-
-/**
- * Check whether a nav menu already contains a custom URL item.
- *
- * @param int    $menu_id Menu term ID.
- * @param string $url     Full URL to check.
- * @return bool
- */
-function aura_menu_has_url_item($menu_id, $url) {
-    $menu_id = (int) $menu_id;
-    if ($menu_id <= 0) {
-        return false;
-    }
-
-    $menu_items = wp_get_nav_menu_items($menu_id, array('post_status' => 'any'));
-    if (!$menu_items || is_wp_error($menu_items)) {
-        return false;
-    }
-
-    $url = trailingslashit(strtolower(esc_url_raw($url)));
-    foreach ($menu_items as $item) {
-        if (trailingslashit(strtolower($item->url)) === $url) {
-            return true;
-        }
-    }
-
-    return false;
+    // Footer links are hard-coded in footer.php.
+    // Do not seed or assign footer nav menus from setup.
 }
 
 /**
@@ -403,11 +294,12 @@ function aura_menu_has_page_item($menu_id, $page_id) {
 }
 
 /**
- * One-time sync: remove Blog from the primary nav, add Compare.
+ * One-time sync: remove Blog and Compare from the primary nav.
+ * Version 0.3 supersedes 0.2 (which previously added Compare).
  * Runs once per version stamp so it is safe on every subsequent load.
  */
 function aura_sync_primary_nav_menu() {
-    if (get_option('aura_nav_synced') === '0.2') {
+    if (get_option('aura_nav_synced') === '0.3') {
         return;
     }
 
@@ -431,25 +323,74 @@ function aura_sync_primary_nav_menu() {
             wp_delete_post((int) $item->ID, true);
             continue;
         }
+
         // Remove any custom-URL Blog item by title.
-        if ('custom' === $item->type && strtolower(trim($item->title)) === 'blog') {
+        if ('custom' === $item->type && strtolower(trim((string) $item->title)) === 'blog') {
+            wp_delete_post((int) $item->ID, true);
+            continue;
+        }
+
+        // Remove Compare item (canonical nav no longer includes Compare).
+        if ('custom' === $item->type && home_url('/compare') === $item->url) {
             wp_delete_post((int) $item->ID, true);
         }
     }
 
-    // Add Compare as custom URL if not present.
-    if (!aura_menu_has_url_item($primary_menu_id, home_url('/compare'))) {
-        wp_update_nav_menu_item($primary_menu_id, 0, array(
-            'menu-item-type'   => 'custom',
-            'menu-item-url'    => home_url('/compare'),
-            'menu-item-title'  => 'Compare',
-            'menu-item-status' => 'publish',
-        ));
-    }
-
-    update_option('aura_nav_synced', '0.2');
+    update_option('aura_nav_synced', '0.3');
 }
 add_action('after_setup_theme', 'aura_sync_primary_nav_menu', 20);
+
+/**
+ * One-time cleanup: remove legacy footer menu locations from theme mods.
+ *
+ * Footer links are now hard-coded in footer.php and should not be menu-driven.
+ */
+function aura_cleanup_legacy_footer_menu_locations() {
+    if (get_option('aura_footer_menu_cleanup') === '1') {
+        return;
+    }
+
+    $locations = get_theme_mod('nav_menu_locations', array());
+    if (!is_array($locations)) {
+        $locations = array();
+    }
+
+    $updated = false;
+    foreach (array('footer_platform', 'footer_company') as $location_key) {
+        if (isset($locations[$location_key])) {
+            unset($locations[$location_key]);
+            $updated = true;
+        }
+    }
+
+    if ($updated) {
+        set_theme_mod('nav_menu_locations', $locations);
+    }
+
+    // Remove old footer menus if they are no longer assigned anywhere.
+    foreach (array('Footer Platform', 'Footer Company') as $menu_name) {
+        $menu = wp_get_nav_menu_object($menu_name);
+        if (!$menu || is_wp_error($menu)) {
+            continue;
+        }
+
+        $menu_id = (int) $menu->term_id;
+        $is_assigned = false;
+        foreach ($locations as $assigned_menu_id) {
+            if ($menu_id === (int) $assigned_menu_id) {
+                $is_assigned = true;
+                break;
+            }
+        }
+
+        if (!$is_assigned) {
+            wp_delete_nav_menu($menu_id);
+        }
+    }
+
+    update_option('aura_footer_menu_cleanup', '1', false);
+}
+add_action('after_setup_theme', 'aura_cleanup_legacy_footer_menu_locations', 25);
 
 /**
  * Get reCAPTCHA settings from WordPress options.
@@ -648,8 +589,8 @@ function aura_scripts() {
         || is_page_template('page-ecosystem-item-acf.php')
         || is_page_template('page-ecosystem-item-elementor.php')
         || is_page(array('ecosystem', 'ecosystem-item'))
-        || is_singular(array('aura_compare', 'aura_guide', 'aura_research', 'aura_update', 'aura_pillar'))
-        || is_post_type_archive(array('aura_compare', 'aura_guide', 'aura_research', 'aura_update', 'aura_pillar'));
+        || is_singular(array('aura_compare', 'aura_guide', 'aura_research', 'aura_update', 'aura_pillar', 'aura_dataset'))
+        || is_post_type_archive(array('aura_compare', 'aura_guide', 'aura_research', 'aura_update', 'aura_pillar', 'aura_dataset'));
     if ($is_ecosystem_page) {
         wp_enqueue_style('aura-ecosystem', get_template_directory_uri() . '/css/ecosystem.css', array('aura-style', 'aura-sections'), $ecosystem_version);
     }
@@ -665,8 +606,8 @@ function aura_scripts() {
         'page-learn-faq-topic.php',
     ))
         || is_page(array('solutions', 'glossary', 'learn'))
-        || is_singular(array('aura_compare', 'aura_guide', 'aura_research', 'aura_update', 'aura_pillar'))
-        || is_post_type_archive(array('aura_compare', 'aura_guide', 'aura_research', 'aura_update', 'aura_pillar'));
+        || is_singular(array('aura_compare', 'aura_guide', 'aura_research', 'aura_update', 'aura_pillar', 'aura_dataset'))
+        || is_post_type_archive(array('aura_compare', 'aura_guide', 'aura_research', 'aura_update', 'aura_pillar', 'aura_dataset'));
 
     $is_extra_page = is_page_template('page-about.php')
         || is_page_template('page-terms.php')
@@ -849,7 +790,7 @@ function aura_is_external_seo_plugin_active() {
 }
 
 /**
- * Determine whether this theme should output SEO meta/schema tags.
+ * Determine whether this theme should output SEO meta tags.
  *
  * @return bool
  */
@@ -859,6 +800,34 @@ function aura_should_output_theme_seo_tags() {
     }
 
     if (aura_is_external_seo_plugin_active()) {
+        return false;
+    }
+
+    return true;
+}
+
+/**
+ * Determine whether this theme should output JSON-LD schema tags.
+ *
+ * Theme schema remains enabled when Rank Math is active, but is disabled
+ * for other SEO plugins to avoid duplicate structured data.
+ *
+ * @return bool
+ */
+function aura_should_output_theme_schema_tags() {
+    if (is_admin() || is_feed() || is_trackback()) {
+        return false;
+    }
+
+    $non_rankmath_seo_plugin_active = (
+        defined('WPSEO_VERSION') ||
+        defined('AIOSEO_VERSION') ||
+        defined('SEOPRESS_VERSION') ||
+        defined('THE_SEO_FRAMEWORK_VERSION') ||
+        function_exists('aioseo')
+    );
+
+    if ($non_rankmath_seo_plugin_active) {
         return false;
     }
 
@@ -1304,7 +1273,8 @@ function aura_output_site_identity_schema() {
 
     echo '<script type="application/ld+json">' . wp_json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . '</script>' . "\n";
 }
-add_action('wp_head', 'aura_output_site_identity_schema', 4);
+// Legacy schema hook disabled. Canonical homepage schema is in inc/schema.php.
+// add_action('wp_head', 'aura_output_site_identity_schema', 4);
 
 /**
  * Output DefinedTerm + FAQPage schema for glossary entry pages.
@@ -1405,7 +1375,8 @@ function aura_output_glossary_entry_schema() {
 
     echo '<script type="application/ld+json">' . wp_json_encode($schema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . '</script>' . "\n";
 }
-add_action('wp_head', 'aura_output_glossary_entry_schema', 5);
+// Legacy schema hook disabled. Canonical glossary schema is in inc/schema.php.
+// add_action('wp_head', 'aura_output_glossary_entry_schema', 5);
 
 /**
  * Build generic breadcrumb items for schema output.
@@ -1629,7 +1600,8 @@ function aura_output_global_breadcrumb_schema() {
 
     echo '<script type="application/ld+json">' . wp_json_encode($schema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . '</script>' . "\n";
 }
-add_action('wp_head', 'aura_output_global_breadcrumb_schema', 5);
+// Legacy schema hook disabled. Canonical breadcrumbs schema is in inc/schema.php.
+// add_action('wp_head', 'aura_output_global_breadcrumb_schema', 5);
 
 /**
  * Ensure AI crawler user agents are explicitly allowed in robots.txt.

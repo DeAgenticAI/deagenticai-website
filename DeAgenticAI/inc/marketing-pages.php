@@ -270,7 +270,10 @@ function aura_get_glossary_entry_payload($page_id = 0) {
     $faqs = aura_get_marketing_page_rows($page_id, '_aura_glossary_faqs', array('question', 'answer'));
 
     return array(
-        'definition' => aura_get_marketing_page_excerpt($page_id, 28),
+        'definition' => (function() use ($page_id) {
+            $def = trim((string) get_post_meta($page_id, '_dea_definition', true));
+            return '' !== $def ? $def : aura_get_marketing_page_excerpt($page_id, 28);
+        })(),
         'why_it_matters' => '' !== trim($why_it_matters) ? $why_it_matters : $default_why,
         'how_steps' => !empty($how_steps) ? $how_steps : $default_how_steps,
         'related_entities' => !empty($related_entities) ? $related_entities : $default_related,
@@ -1220,7 +1223,7 @@ function aura_get_marketing_breadcrumb_schema($page_id) {
  * Output structured data for marketing page templates.
  */
 function aura_output_marketing_page_schema() {
-    if (!aura_should_output_theme_seo_tags() || !is_page()) {
+    if (!aura_should_output_theme_schema_tags() || !is_page()) {
         return;
     }
 
@@ -1328,21 +1331,8 @@ function aura_output_marketing_page_schema() {
     }
 
     if ('glossary-entry' === $page_type) {
+        // DefinedTerm schema is handled by dea_glossary_schema() in inc/schema.php.
         $payload = aura_get_glossary_entry_payload($page_id);
-        $defined_term = array(
-            '@context' => 'https://schema.org',
-            '@type' => 'DefinedTerm',
-            'name' => get_the_title($page_id),
-            'description' => aura_normalize_meta_text($payload['definition'], 320),
-            'url' => get_permalink($page_id),
-            'inDefinedTermSet' => array(
-                '@type' => 'DefinedTermSet',
-                'name' => __('DeAgenticAI Glossary', 'aura'),
-                'url' => home_url('/glossary/'),
-            ),
-        );
-        $schemas[] = $defined_term;
-
         if (!empty($payload['faqs'])) {
             $faq_entities = array();
             foreach ($payload['faqs'] as $faq) {
@@ -1367,36 +1357,8 @@ function aura_output_marketing_page_schema() {
     }
 
     if ('solution-entry' === $page_type) {
+        // HowTo schema is handled by dea_solution_schema() in inc/schema.php.
         $payload = aura_get_solution_entry_payload($page_id);
-        if (!empty($payload['implementation_steps'])) {
-            $steps = array();
-            foreach ($payload['implementation_steps'] as $step) {
-                $steps[] = array(
-                    '@type' => 'HowToStep',
-                    'name' => $step['title'],
-                    'text' => $step['text'],
-                );
-            }
-
-            if (!empty($steps)) {
-                $how_to = array(
-                    '@context' => 'https://schema.org',
-                    '@type' => 'HowTo',
-                    'name' => get_the_title($page_id),
-                    'description' => aura_normalize_meta_text(aura_get_marketing_page_excerpt($page_id, 40), 220),
-                    'step' => $steps,
-                    'url' => get_permalink($page_id),
-                );
-
-                $featured_image = get_the_post_thumbnail_url($page_id, 'full');
-                if ($featured_image) {
-                    $how_to['image'] = $featured_image;
-                }
-
-                $schemas[] = $how_to;
-            }
-        }
-
         if (!empty($payload['faqs'])) {
             $faq_entities = array();
             foreach ($payload['faqs'] as $faq) {
@@ -1503,7 +1465,7 @@ function aura_get_marketing_seed_pages() {
             ),
             array(
                 'slug' => 'kya-know-your-agent',
-                'title' => 'Know Your Agent (KYA)',
+                'title' => 'KYA — Know Your Agent',
                 'template' => 'page-glossary-entry.php',
                 'excerpt' => "Know Your Agent (KYA) is the identity and credentialing framework through which DeAgenticAI establishes verifiable, on-chain identities for autonomous AI agents anchored to W3C Decentralized Identifiers and A2A Agent Card verification.",
                 'content' => "<p>Explain how verifiable agent identity works, what trust signals matter, and how KYA maps to on-chain operations.</p>\n<p>Use concrete identity components rather than abstract marketing language.</p>",
@@ -1676,6 +1638,9 @@ function aura_seed_marketing_child_pages($parent_id, $hub_key) {
 
             if ($page_id) {
                 update_post_meta((int) $page_id, '_wp_page_template', $template);
+                if ('glossary' === $hub_key && !empty($seed_page['excerpt'])) {
+                    update_post_meta((int) $page_id, '_dea_definition', (string) $seed_page['excerpt']);
+                }
             }
 
             continue;
@@ -1685,6 +1650,10 @@ function aura_seed_marketing_child_pages($parent_id, $hub_key) {
         $current_template = (string) get_post_meta($existing_id, '_wp_page_template', true);
         if ($current_template !== $template) {
             update_post_meta($existing_id, '_wp_page_template', $template);
+        }
+
+        if ('glossary' === $hub_key && !empty($seed_page['excerpt']) && '' === trim((string) get_post_meta($existing_id, '_dea_definition', true))) {
+            update_post_meta($existing_id, '_dea_definition', (string) $seed_page['excerpt']);
         }
 
         if ((int) $existing_page->post_parent !== $parent_id) {

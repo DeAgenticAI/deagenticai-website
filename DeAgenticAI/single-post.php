@@ -27,7 +27,7 @@ get_header();
         $post_tags = get_the_tags($post_id);
         $common_questions = aura_get_post_common_questions($post_id);
         $blog_page_id = (int) get_option('page_for_posts');
-        $blog_index_url = $blog_page_id > 0 ? get_permalink($blog_page_id) : home_url('/blog');
+        $blog_index_url = $blog_page_id > 0 ? get_permalink($blog_page_id) : home_url('/learn');
         $site_url = home_url('/');
         $organization_id = trailingslashit($site_url) . '#organization';
         $site_logo_url = function_exists('aura_get_site_logo_url') ? aura_get_site_logo_url() : '';

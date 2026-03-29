@@ -16,6 +16,169 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
+/**
+ * Normalize author sameAs values from post meta into a clean URL list.
+ *
+ * Supports either:
+ * - array meta values
+ * - newline/comma separated string values
+ *
+ * @param mixed $raw Raw meta value.
+ * @return array<int,string>
+ */
+function dea_normalize_author_same_as( $raw ) {
+    $candidates = array();
+
+    if ( is_array( $raw ) ) {
+        $candidates = $raw;
+    } elseif ( is_string( $raw ) ) {
+        $raw        = trim( $raw );
+        $candidates = '' === $raw ? array() : preg_split( '/[\r\n,]+/', $raw );
+    }
+
+    $urls = array();
+    foreach ( $candidates as $candidate ) {
+        if ( ! is_string( $candidate ) ) {
+            continue;
+        }
+
+        $candidate = trim( $candidate );
+        if ( '' === $candidate ) {
+            continue;
+        }
+
+        $url = esc_url_raw( $candidate );
+        if ( '' === $url || ! filter_var( $url, FILTER_VALIDATE_URL ) ) {
+            continue;
+        }
+
+        $urls[] = $url;
+    }
+
+    return array_values( array_unique( $urls ) );
+}
+
+/**
+ * Return the queried author profile page ID when current request is an author page.
+ *
+ * @return int
+ */
+function dea_get_author_profile_page_id() {
+    if ( ! is_page() ) {
+        return 0;
+    }
+
+    $page_id = (int) get_queried_object_id();
+    if ( $page_id <= 0 ) {
+        return 0;
+    }
+
+    // Primary path: explicit author profile template assignment.
+    if ( is_page_template( 'page-author.php' ) ) {
+        return $page_id;
+    }
+
+    // Fallback path: child pages under /authors/ even if template assignment is missing.
+    $parent_id = (int) wp_get_post_parent_id( $page_id );
+    if ( $parent_id <= 0 ) {
+        return 0;
+    }
+
+    if ( 'authors' === (string) get_post_field( 'post_name', $parent_id ) ) {
+        return $page_id;
+    }
+
+    return 0;
+}
+
+/**
+ * Build reusable author profile metadata for template + schema surfaces.
+ *
+ * @param int $page_id Author page ID.
+ * @return array<string,mixed>
+ */
+function dea_get_author_profile_metadata( $page_id ) {
+    $page_id = (int) $page_id;
+    if ( $page_id <= 0 ) {
+        return array(
+            'name'      => '',
+            'slug'      => '',
+            'user_id'   => 0,
+            'job_title' => '',
+            'short_bio' => 'Reza Jahankohan is the Founder of DeAgenticAI and publishes on agentic policy enforcement, governed MPC signing, and AI-agent authority controls.',
+            'long_bio'  => 'Reza Jahankohan is the Founder of DeAgenticAI and publishes research and implementation guidance on agentic policy enforcement, governed MPC signing, and AI-agent authority controls across Web3 and enterprise financial systems. His work focuses on making autonomous AI execution safe, governed, and auditable through cryptographic policy enforcement.',
+            'same_as'   => array(),
+            'panel_label' => 'Authority Profile',
+            'panel_title' => 'Reza Jahankohan — Founder, DeAgenticAI',
+            'panel_body'  => 'Reza Jahankohan is the Founder of DeAgenticAI and publishes on agentic policy enforcement, governed MPC signing, and AI-agent authority controls in Web3 and enterprise financial systems. This is his canonical author profile with verified references.',
+        );
+    }
+
+    $slug        = (string) get_post_field( 'post_name', $page_id );
+    $name        = (string) get_the_title( $page_id );
+    $user_id     = (int) get_post_meta( $page_id, '_dea_author_user_id', true );
+    $job_title   = trim( (string) get_post_meta( $page_id, '_dea_author_job_title', true ) );
+    $short_bio   = trim( (string) get_post_meta( $page_id, '_dea_author_short_bio', true ) );
+    $long_bio    = trim( (string) get_post_meta( $page_id, '_dea_author_long_bio', true ) );
+    $same_as     = dea_normalize_author_same_as( get_post_meta( $page_id, '_dea_author_same_as', true ) );
+    $panel_label = trim( (string) get_post_meta( $page_id, '_dea_author_panel_label', true ) );
+    $panel_title = trim( (string) get_post_meta( $page_id, '_dea_author_panel_title', true ) );
+    $panel_body  = trim( (string) get_post_meta( $page_id, '_dea_author_panel_body', true ) );
+
+    if ( $user_id > 0 && function_exists( 'dea_get_author_user_same_as_urls' ) && empty( $same_as ) ) {
+        $same_as = dea_get_author_user_same_as_urls( $user_id );
+    }
+
+    // Backward-compatible defaults for the initial seeded profile.
+    if ( 'reza-jahankohan' === $slug ) {
+        if ( '' === $job_title ) {
+            $job_title = 'Founder, DeAgenticAI';
+        }
+        if ( '' === $short_bio ) {
+            $short_bio = 'Reza Jahankohan is the Founder of DeAgenticAI and publishes on agentic policy enforcement, governed MPC signing, and AI-agent authority controls.';
+        }
+        if ( '' === $long_bio ) {
+            $long_bio = 'Reza Jahankohan is the Founder of DeAgenticAI and publishes research and implementation guidance on agentic policy enforcement, governed MPC signing, and AI-agent authority controls across Web3 and enterprise financial systems. His work focuses on making autonomous AI execution safe, governed, and auditable through cryptographic policy enforcement.';
+        }
+        if ( empty( $same_as ) ) {
+            $same_as = array(
+                'https://www.linkedin.com/in/rezajahankohan/',
+                'https://x.com/RJahankohan',
+            );
+        }
+    }
+
+    if ( '' === $short_bio ) {
+        $short_bio = trim( (string) get_post_field( 'post_excerpt', $page_id ) );
+    }
+    if ( '' === $short_bio ) {
+        $short_bio = wp_trim_words( wp_strip_all_tags( (string) get_post_field( 'post_content', $page_id ) ), 38, '...' );
+    }
+
+    if ( '' === $panel_label ) {
+        $panel_label = 'Authority Profile';
+    }
+    if ( '' === $panel_title ) {
+        $panel_title = 'Reza Jahankohan — Founder, DeAgenticAI';
+    }
+    if ( '' === $panel_body ) {
+        $panel_body = 'Reza Jahankohan is the Founder of DeAgenticAI and publishes on agentic policy enforcement, governed MPC signing, and AI-agent authority controls in Web3 and enterprise financial systems. This is his canonical author profile with verified references.';
+    }
+
+    return array(
+        'name'        => $name,
+        'slug'        => $slug,
+        'user_id'     => $user_id,
+        'job_title'   => $job_title,
+        'short_bio'   => $short_bio,
+        'long_bio'    => $long_bio,
+        'same_as'     => $same_as,
+        'panel_label' => $panel_label,
+        'panel_title' => $panel_title,
+        'panel_body'  => $panel_body,
+    );
+}
+
 // -------------------------------------------------------------------------
 // 1. Homepage — Organization + WebSite
 // -------------------------------------------------------------------------
@@ -57,7 +220,7 @@ function dea_homepage_schema() {
                 'logo'        => $logo_url,
                 'description' => "DeAgenticAI's Agentic Control Plane enforces cryptographic policy over AI agent authority \u2014 separating what an agent can do from what it is authorized to do \u2014 in Web3 and enterprise financial environments.",
                 'sameAs'      => $same_as,
-                'foundingDate' => '2024',
+                'foundingDate' => '2026',
                 'makesOffer'  => array(
                     '@type'       => 'Offer',
                     'itemOffered' => array(
@@ -578,7 +741,13 @@ function dea_breadcrumb_schema() {
         $items[] = array( '@type' => 'ListItem', 'position' => $position++, 'name' => 'Datasets', 'item' => home_url( '/learn/datasets/' ) );
         $items[] = array( '@type' => 'ListItem', 'position' => $position++, 'name' => get_the_title(), 'item' => get_permalink() );
     } else {
-        return; // Not a CPT or solution page; let marketing-pages.php handle the rest.
+        $author_profile_page_id = dea_get_author_profile_page_id();
+        if ( $author_profile_page_id > 0 ) {
+            $items[] = array( '@type' => 'ListItem', 'position' => $position++, 'name' => 'Authors', 'item' => home_url( '/authors/' ) );
+            $items[] = array( '@type' => 'ListItem', 'position' => $position++, 'name' => get_the_title( $author_profile_page_id ), 'item' => get_permalink( $author_profile_page_id ) );
+        } else {
+            return; // Not a CPT or known page; let marketing-pages.php handle the rest.
+        }
     }
 
     $schema = array(
@@ -590,3 +759,50 @@ function dea_breadcrumb_schema() {
     echo '<script type="application/ld+json">' . wp_json_encode( $schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) . '</script>' . "\n";
 }
 add_action( 'wp_head', 'dea_breadcrumb_schema', 5 );
+
+// -------------------------------------------------------------------------
+// 11. Author Page — Person
+// -------------------------------------------------------------------------
+
+function dea_author_schema() {
+    $page_id = dea_get_author_profile_page_id();
+    if ( $page_id <= 0 ) {
+        return;
+    }
+    if ( function_exists( 'aura_should_output_theme_schema_tags' ) && ! aura_should_output_theme_schema_tags() ) {
+        return;
+    }
+
+    $meta        = dea_get_author_profile_metadata( $page_id );
+    $description = isset( $meta['short_bio'] ) ? trim( (string) $meta['short_bio'] ) : '';
+    if ( '' === $description ) {
+        $description = function_exists( 'aura_get_marketing_page_excerpt' )
+            ? aura_get_marketing_page_excerpt( $page_id, 40 )
+            : wp_strip_all_tags( (string) get_the_excerpt( $page_id ) );
+    }
+
+    $schema = array(
+        '@context' => 'https://schema.org',
+        '@type'    => 'Person',
+        '@id'      => get_permalink( $page_id ) . '#person',
+        'name'     => '' !== $meta['name'] ? $meta['name'] : get_the_title( $page_id ),
+        'url'      => get_permalink( $page_id ),
+        'mainEntityOfPage' => get_permalink( $page_id ),
+        'worksFor' => array( '@id' => home_url( '/#organization' ) ),
+    );
+
+    if ( '' !== (string) $meta['job_title'] ) {
+        $schema['jobTitle'] = (string) $meta['job_title'];
+    }
+
+    if ( '' !== $description ) {
+        $schema['description'] = $description;
+    }
+
+    if ( ! empty( $meta['same_as'] ) ) {
+        $schema['sameAs'] = array_values( $meta['same_as'] );
+    }
+
+    echo '<script type="application/ld+json">' . wp_json_encode( $schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) . '</script>' . "\n";
+}
+add_action( 'wp_head', 'dea_author_schema', 5 );

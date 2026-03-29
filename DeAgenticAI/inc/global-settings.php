@@ -101,7 +101,7 @@ function aura_get_content( $key, $default = '' ) {
  * @return string
  */
 function aura_get_semantic_triple() {
-    return "DeAgenticAI's Agentic Control Plane enforces cryptographic policy over AI agent authority - separating what an agent can do from what it is authorized to do - in Web3 and enterprise financial environments.";
+    return "DeAgenticAI's Agentic Control Plane enforces cryptographic policy over AI agent authority — separating what an agent can do from what it is authorized to do — in Web3 and enterprise financial environments.";
 }
 
 // -------------------------------------------------------------------------

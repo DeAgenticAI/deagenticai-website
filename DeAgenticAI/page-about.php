@@ -18,9 +18,33 @@ $about_lead             = isset( $about_settings['hero_lead'] ) ? (string) $abou
 $about_focus_items      = isset( $about_settings['focus_items'] ) && is_array( $about_settings['focus_items'] ) ? $about_settings['focus_items'] : array();
 $about_visual_labels    = isset( $about_settings['visual_labels'] ) && is_array( $about_settings['visual_labels'] ) ? $about_settings['visual_labels'] : array();
 $about_contact_email    = function_exists( 'aura_get_content' ) ? aura_get_content( 'email_address', '' ) : '';
+$about_founder_profile  = array(
+    'url'   => '',
+    'name'  => '',
+    'role'  => '',
+    'bio'   => '',
+);
 
 if ( '' === $about_contact_email || ! is_email( $about_contact_email ) ) {
     $about_contact_email = get_option( 'admin_email' );
+}
+
+$founder_profile_page = get_page_by_path( 'authors/reza-jahankohan' );
+if ( $founder_profile_page instanceof WP_Post ) {
+    $founder_page_id = (int) $founder_profile_page->ID;
+
+    $about_founder_profile['url']  = get_permalink( $founder_page_id );
+    $about_founder_profile['name'] = get_the_title( $founder_page_id );
+
+    if ( function_exists( 'dea_get_author_profile_metadata' ) ) {
+        $founder_meta = dea_get_author_profile_metadata( $founder_page_id );
+        if ( isset( $founder_meta['job_title'] ) && is_string( $founder_meta['job_title'] ) ) {
+            $about_founder_profile['role'] = trim( $founder_meta['job_title'] );
+        }
+        if ( isset( $founder_meta['short_bio'] ) && is_string( $founder_meta['short_bio'] ) ) {
+            $about_founder_profile['bio'] = trim( $founder_meta['short_bio'] );
+        }
+    }
 }
 
 $about_focus_icons = array(
@@ -156,6 +180,22 @@ get_header();
                 <p><?php echo esc_html( (string) $about_settings['team_body_secondary'] ); ?></p>
                 <p><?php echo esc_html( (string) $about_settings['team_body_tertiary'] ); ?></p>
                 <p class="about-team-note"><?php echo esc_html( (string) $about_settings['team_note'] ); ?></p>
+
+                <?php if ( '' !== $about_founder_profile['url'] ) : ?>
+                    <div class="about-founder-profile">
+                        <p class="about-founder-eyebrow"><?php esc_html_e( 'Founder Profile', 'aura' ); ?></p>
+                        <h3><?php echo esc_html( '' !== $about_founder_profile['name'] ? $about_founder_profile['name'] : __( 'Reza Jahankohan', 'aura' ) ); ?></h3>
+                        <?php if ( '' !== $about_founder_profile['role'] ) : ?>
+                            <p class="about-founder-role"><?php echo esc_html( $about_founder_profile['role'] ); ?></p>
+                        <?php endif; ?>
+                        <?php if ( '' !== $about_founder_profile['bio'] ) : ?>
+                            <p class="about-founder-bio"><?php echo esc_html( $about_founder_profile['bio'] ); ?></p>
+                        <?php endif; ?>
+                        <a class="about-founder-link" href="<?php echo esc_url( $about_founder_profile['url'] ); ?>">
+                            <?php esc_html_e( 'View Full Founder Profile', 'aura' ); ?>
+                        </a>
+                    </div>
+                <?php endif; ?>
             </article>
         </section>
 

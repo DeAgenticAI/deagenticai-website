@@ -149,7 +149,7 @@ function aura_render_homepage_settings_fields( $page_id ) {
 
     $semantic_triple = function_exists( 'aura_get_semantic_triple' )
         ? aura_get_semantic_triple()
-        : "DeAgenticAI's Agentic Control Plane enforces cryptographic policy over AI agent authority - separating what an agent can do from what it is authorized to do - in Web3 and enterprise financial environments.";
+        : "DeAgenticAI's Agentic Control Plane enforces cryptographic policy over AI agent authority — separating what an agent can do from what it is authorized to do — in Web3 and enterprise financial environments.";
 
     $usecase_defaults = aura_get_homepage_usecase_defaults();
     ?>

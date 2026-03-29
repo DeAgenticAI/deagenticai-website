@@ -175,6 +175,11 @@
     padding: clamp(2rem, 4vw, 3.2rem);
 }
 
+.about-thesis-card > .about-section-label,
+.about-team-card > .about-section-label {
+    margin-bottom: 1.45rem;
+}
+
 .about-thesis-card h2,
 .about-team-card h2 {
     margin-bottom: 1rem;
@@ -203,6 +208,60 @@
 
 .about-team-note {
     color: rgba(186, 230, 253, 0.9);
+}
+
+.about-founder-profile {
+    margin-top: 1.65rem;
+    padding: 1.35rem;
+    border-radius: 1.1rem;
+    border: 1px solid rgba(56, 189, 248, 0.28);
+    background: rgba(56, 189, 248, 0.08);
+}
+
+.about-founder-eyebrow {
+    margin: 0 0 0.55rem;
+    font-family: var(--font-mono);
+    font-size: 0.66rem;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+    color: rgba(186, 230, 253, 0.95);
+}
+
+.about-founder-profile h3 {
+    margin: 0 0 0.35rem;
+    font-family: var(--font-serif);
+    font-size: 1.45rem;
+    line-height: 1.2;
+}
+
+.about-founder-role {
+    margin: 0;
+    font-size: 0.84rem;
+    font-family: var(--font-mono);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(186, 230, 253, 0.92);
+}
+
+.about-founder-bio {
+    margin-top: 0.75rem;
+    color: rgba(255, 255, 255, 0.74);
+    line-height: 1.8;
+}
+
+.about-founder-link {
+    margin-top: 0.85rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: #ffffff;
+    text-decoration: none;
+}
+
+.about-founder-link:hover {
+    color: var(--primary);
 }
 
 .about-focus {
@@ -1407,4 +1466,145 @@
 .legal-cta p {
     color: rgba(255, 255, 255, 0.56);
     margin-bottom: 1.1rem;
+}
+
+/* -------------------------------------------------------------------------
+   Author Directory + Profile Pages
+   ------------------------------------------------------------------------- */
+
+.authors-index-page .marketing-hero {
+    max-width: 64rem;
+    margin-bottom: 3.5rem;
+}
+
+.authors-index-page .marketing-prose-centered {
+    margin-top: 1.35rem;
+}
+
+.authors-card-grid {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+
+@media (min-width: 780px) {
+    .authors-card-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (min-width: 1160px) {
+    .authors-card-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+.authors-card .marketing-card-topline {
+    color: rgba(186, 230, 253, 0.95);
+}
+
+.authors-empty-state {
+    text-align: center;
+}
+
+.author-entry-hero {
+    margin-bottom: 2rem;
+}
+
+.author-profile-role {
+    margin: 0 0 1rem;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(186, 230, 253, 0.95);
+}
+
+.author-visual-panel strong {
+    max-width: 22rem;
+}
+
+.author-content-layout {
+    align-items: start;
+}
+
+.author-profile-prose p + p {
+    margin-top: 1.15rem;
+}
+
+.author-profile-prose a {
+    color: var(--primary);
+}
+
+.author-content-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: 0.75rem;
+}
+
+.author-content-list li {
+    display: grid;
+    gap: 0.28rem;
+    padding: 0.85rem 0.95rem;
+    border-radius: 0.9rem;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(0, 0, 0, 0.24);
+}
+
+.author-content-list a {
+    color: rgba(255, 255, 255, 0.94);
+    text-decoration: none;
+    line-height: 1.55;
+}
+
+.author-content-list a:hover {
+    color: var(--primary);
+}
+
+.author-content-list span,
+.author-content-empty {
+    color: rgba(148, 163, 184, 0.94);
+    font-size: 0.82rem;
+    line-height: 1.5;
+}
+
+.author-content-empty {
+    margin: 0;
+}
+
+.author-signal-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: 0.9rem;
+}
+
+.author-signal-list li {
+    display: grid;
+    gap: 0.28rem;
+    padding: 0.85rem 0.95rem;
+    border-radius: 0.9rem;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(0, 0, 0, 0.24);
+}
+
+.author-signal-list span {
+    font-family: var(--font-mono);
+    font-size: 0.66rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(148, 163, 184, 0.9);
+}
+
+.author-signal-list strong,
+.author-signal-list a {
+    color: rgba(255, 255, 255, 0.92);
+    text-decoration: none;
+    line-height: 1.55;
+}
+
+.author-signal-list a:hover,
+.author-links-card .marketing-link-list a:hover {
+    color: var(--primary);
 }

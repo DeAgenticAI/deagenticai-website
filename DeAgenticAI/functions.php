@@ -98,10 +98,6 @@ function aura_create_default_pages() {
             'title' => 'Learn',
             'template' => 'page-learn.php'
         ),
-        'blog' => array(
-            'title' => 'Blog',
-            'template' => 'page-blog.php'
-        ),
         'glossary' => array(
             'title' => 'Glossary',
             'template' => 'page-glossary.php'
@@ -188,6 +184,122 @@ function aura_create_default_pages() {
         aura_seed_ecosystem_component_pages((int) $ecosystem->ID);
     }
 
+    // Create /authors/ parent page and /authors/reza-jahankohan/ child page.
+    $author_short_bio  = 'Reza Jahankohan is the Founder of DeAgenticAI and publishes on agentic policy enforcement, governed MPC signing, and AI-agent authority controls.';
+    $author_long_bio   = 'Reza Jahankohan is the Founder of DeAgenticAI and publishes research and implementation guidance on agentic policy enforcement, governed MPC signing, and AI-agent authority controls across Web3 and enterprise financial systems. His work focuses on making autonomous AI execution safe, governed, and auditable through cryptographic policy enforcement.';
+    $author_bio_opening = $author_long_bio;
+    $author_panel_title = 'Reza Jahankohan — Founder, DeAgenticAI';
+    $author_panel_body  = 'Reza Jahankohan is the Founder of DeAgenticAI and publishes on agentic policy enforcement, governed MPC signing, and AI-agent authority controls in Web3 and enterprise financial systems. This is his canonical author profile with verified references.';
+    $author_job_title   = 'Founder, DeAgenticAI';
+    $author_same_as     = implode(
+        "\n",
+        array(
+            'https://www.linkedin.com/in/rezajahankohan/',
+            'https://x.com/RJahankohan',
+        )
+    );
+    $author_content = '<p>' . $author_bio_opening . '</p>'
+        . '<p>Connect: <a href="https://www.linkedin.com/in/rezajahankohan/" target="_blank" rel="noopener noreferrer">LinkedIn</a> &middot; <a href="https://x.com/RJahankohan" target="_blank" rel="noopener noreferrer">Twitter/X</a></p>';
+    $legacy_author_content = '<p>Reza Jahankohan is the Founder of DeAgenticAI, building governance infrastructure for autonomous AI agents operating on-chain.</p>'
+        . '<p>Connect: <a href="https://www.linkedin.com/in/rezajahankohan/" target="_blank" rel="noopener noreferrer">LinkedIn</a> &middot; <a href="https://x.com/RJahankohan" target="_blank" rel="noopener noreferrer">Twitter/X</a></p>';
+
+    $authors_page = get_page_by_path( 'authors' );
+    if ( ! $authors_page ) {
+        $authors_insert_id = wp_insert_post( array(
+            'post_title'   => 'Authors',
+            'post_name'    => 'authors',
+            'post_type'    => 'page',
+            'post_status'  => 'publish',
+            'post_content' => '',
+        ) );
+        $authors_page = ( $authors_insert_id && ! is_wp_error( $authors_insert_id ) )
+            ? get_post( $authors_insert_id )
+            : null;
+    }
+
+    if ( $authors_page ) {
+        $authors_parent_id = (int) $authors_page->ID;
+        $author_child      = get_page_by_path( 'authors/reza-jahankohan' );
+        if ( ! $author_child ) {
+            $child_id = wp_insert_post( array(
+                'post_title'   => 'Reza Jahankohan',
+                'post_name'    => 'reza-jahankohan',
+                'post_type'    => 'page',
+                'post_status'  => 'publish',
+                'post_parent'  => $authors_parent_id,
+                'post_excerpt' => $author_short_bio,
+                'post_content' => $author_content,
+            ) );
+            if ( $child_id && ! is_wp_error( $child_id ) ) {
+                update_post_meta( $child_id, '_wp_page_template', 'page-author.php' );
+                update_post_meta( $child_id, '_dea_author_job_title', $author_job_title );
+                update_post_meta( $child_id, '_dea_author_short_bio', $author_short_bio );
+                update_post_meta( $child_id, '_dea_author_long_bio', $author_long_bio );
+                update_post_meta( $child_id, '_dea_author_panel_title', $author_panel_title );
+                update_post_meta( $child_id, '_dea_author_panel_body', $author_panel_body );
+                update_post_meta( $child_id, '_dea_author_same_as', $author_same_as );
+            }
+        } else {
+            // Patch template on existing page if it was created without one.
+            $author_child_id = (int) $author_child->ID;
+            $current_tpl = (string) get_post_meta( $author_child_id, '_wp_page_template', true );
+            if ( '' === $current_tpl || 'default' === $current_tpl ) {
+                update_post_meta( $author_child_id, '_wp_page_template', 'page-author.php' );
+            }
+
+            $existing_content = (string) get_post_field( 'post_content', $author_child_id );
+            if ( '' === trim( $existing_content ) || trim( $existing_content ) === trim( $legacy_author_content ) ) {
+                wp_update_post(
+                    array(
+                        'ID'           => $author_child_id,
+                        'post_excerpt' => $author_short_bio,
+                        'post_content' => $author_content,
+                    )
+                );
+            }
+
+            $existing_excerpt = trim( (string) get_post_field( 'post_excerpt', $author_child_id ) );
+            if ( '' === $existing_excerpt ) {
+                wp_update_post(
+                    array(
+                        'ID'           => $author_child_id,
+                        'post_excerpt' => $author_short_bio,
+                    )
+                );
+            }
+
+            $existing_job_title = trim( (string) get_post_meta( $author_child_id, '_dea_author_job_title', true ) );
+            if ( '' === $existing_job_title || 'Founder' === $existing_job_title ) {
+                update_post_meta( $author_child_id, '_dea_author_job_title', $author_job_title );
+            }
+
+            $existing_short_bio = trim( (string) get_post_meta( $author_child_id, '_dea_author_short_bio', true ) );
+            if ( '' === $existing_short_bio ) {
+                update_post_meta( $author_child_id, '_dea_author_short_bio', $author_short_bio );
+            }
+
+            $existing_long_bio = trim( (string) get_post_meta( $author_child_id, '_dea_author_long_bio', true ) );
+            if ( '' === $existing_long_bio ) {
+                update_post_meta( $author_child_id, '_dea_author_long_bio', $author_long_bio );
+            }
+
+            $existing_panel_title = trim( (string) get_post_meta( $author_child_id, '_dea_author_panel_title', true ) );
+            if ( '' === $existing_panel_title || 'Entity-backed authorship for DeAgenticAI knowledge content.' === $existing_panel_title ) {
+                update_post_meta( $author_child_id, '_dea_author_panel_title', $author_panel_title );
+            }
+
+            $existing_panel_body = trim( (string) get_post_meta( $author_child_id, '_dea_author_panel_body', true ) );
+            if ( '' === $existing_panel_body || 'This page centralizes author identity, role, and canonical references for citation and trust signals.' === $existing_panel_body ) {
+                update_post_meta( $author_child_id, '_dea_author_panel_body', $author_panel_body );
+            }
+
+            $existing_same_as = trim( (string) get_post_meta( $author_child_id, '_dea_author_same_as', true ) );
+            if ( '' === $existing_same_as ) {
+                update_post_meta( $author_child_id, '_dea_author_same_as', $author_same_as );
+            }
+        }
+    }
+
     // Ensure primary menu exists and contains key links.
     $locations = get_theme_mod('nav_menu_locations');
     $primary_menu_id = isset($locations['primary']) ? (int) $locations['primary'] : 0;
@@ -263,6 +375,55 @@ function aura_create_default_pages() {
     // Footer links are hard-coded in footer.php.
     // Do not seed or assign footer nav menus from setup.
 }
+
+/**
+ * Migrate legacy About page founder placeholders to production copy.
+ *
+ * Only replaces fields that still exactly match the old placeholder text.
+ */
+function aura_migrate_about_founder_placeholders() {
+    $stored_settings = get_option('aura_about_page', null);
+    if (!is_array($stored_settings)) {
+        return;
+    }
+
+    $legacy_values = array(
+        'team_label' => 'The Team',
+        'team_title' => 'Founding Story',
+        'team_body_primary' => 'DeAgenticAI was founded by [Name] and [Name] in [year], after [one sentence on the specific problem or moment that made the gap obvious].',
+        'team_body_secondary' => '[Founder 1 name] brings [relevant background - e.g. background in MPC cryptography, institutional custody, distributed systems]. [Founder 2 name] brings [relevant background - e.g. background in DeFi protocol design, enterprise compliance, AI infrastructure].',
+        'team_body_tertiary' => 'The company is [location / remote / distributed], building in public and operating under the principle that infrastructure this critical should be verifiable, not trusted.',
+        'team_note' => 'Once real founder details are confirmed, this section can be finalized in full.',
+    );
+
+    $updated_values = array(
+        'team_label' => 'Founder',
+        'team_title' => 'Founding Story',
+        'team_body_primary' => 'DeAgenticAI was founded by Reza Jahankohan in 2026 to solve a core infrastructure gap: autonomous AI agents can execute on-chain, but they cannot be safely granted verifiable authority with private-key-era controls.',
+        'team_body_secondary' => 'Reza focuses on building the Agentic Control Plane as a cryptographic governance layer that enforces policy at signing time, with auditable controls for Web3 and enterprise financial environments.',
+        'team_body_tertiary' => 'DeAgenticAI is founder-led and execution-focused, built on a simple principle: authority must be explicitly defined, cryptographically enforced, and provable.',
+        'team_note' => 'Founder profile and published work are linked below.',
+    );
+
+    $should_update = false;
+    foreach ($legacy_values as $key => $legacy_value) {
+        if (!isset($stored_settings[$key])) {
+            continue;
+        }
+
+        if (trim((string) $stored_settings[$key]) !== $legacy_value) {
+            continue;
+        }
+
+        $stored_settings[$key] = $updated_values[$key];
+        $should_update = true;
+    }
+
+    if ($should_update) {
+        update_option('aura_about_page', $stored_settings);
+    }
+}
+add_action('after_setup_theme', 'aura_migrate_about_founder_placeholders', 20);
 
 /**
  * Check whether a nav menu already contains a specific page item.
@@ -614,7 +775,16 @@ function aura_scripts() {
         || is_page_template('page-privacy.php')
         || is_page_template('page-waitlist.php')
         || is_page(array('about', 'terms', 'privacy', 'waitlist'));
-    if ($is_extra_page || $is_marketing_page) {
+
+    $is_authors_hub = is_page_template('page-authors.php') || is_page('authors');
+    $is_author_profile = is_page_template('page-author.php');
+    if (!$is_author_profile && is_page()) {
+        $queried_page_id = (int) get_queried_object_id();
+        $parent_id = $queried_page_id > 0 ? (int) wp_get_post_parent_id($queried_page_id) : 0;
+        $is_author_profile = $parent_id > 0 && 'authors' === (string) get_post_field('post_name', $parent_id);
+    }
+
+    if ($is_extra_page || $is_marketing_page || $is_authors_hub || $is_author_profile) {
         wp_enqueue_style('aura-pages-extra', get_template_directory_uri() . '/css/pages-extra.css', array('aura-style', 'aura-sections'), $pages_extra_version);
     }
 
@@ -929,9 +1099,11 @@ function aura_get_dynamic_meta_description() {
     $site_name = get_bloginfo('name');
     $site_description = get_bloginfo('description');
     $description = '';
+    $max_length = 160;
 
     if (is_front_page()) {
         $description = function_exists('aura_get_semantic_triple') ? aura_get_semantic_triple() : '';
+        $max_length = 260;
     } elseif (is_singular()) {
         $post_id = (int) get_queried_object_id();
         if ($post_id > 0) {
@@ -1012,7 +1184,7 @@ function aura_get_dynamic_meta_description() {
         );
     }
 
-    return aura_normalize_meta_text($description, 160);
+    return aura_normalize_meta_text($description, $max_length);
 }
 
 /**
@@ -1027,7 +1199,7 @@ function aura_get_homepage_seo_title() {
 
     return sprintf(
         /* translators: %s: site/brand name. */
-        __('%s - Agentic Control Plane for AI Agent Authority in Web3 and Enterprise', 'aura'),
+        __('%s — Agentic Control Plane for AI Agent Authority in Web3 and Enterprise', 'aura'),
         $site_name
     );
 }
@@ -1426,8 +1598,8 @@ function aura_get_generic_breadcrumb_items() {
             );
         } else {
             $items[] = array(
-                'label' => __('Blog', 'aura'),
-                'url' => home_url('/blog/'),
+                'label' => __('Learn', 'aura'),
+                'url' => home_url('/learn/'),
             );
         }
 
@@ -1451,8 +1623,8 @@ function aura_get_generic_breadcrumb_items() {
                 );
             } else {
                 $items[] = array(
-                    'label' => __('Blog', 'aura'),
-                    'url' => home_url('/blog/'),
+                    'label' => __('Learn', 'aura'),
+                    'url' => home_url('/learn/'),
                 );
             }
         } else {
@@ -1672,7 +1844,7 @@ function aura_render_llms_txt() {
     $site_description = aura_normalize_meta_text(get_bloginfo('description'), 220);
     $home_url = home_url('/');
     $blog_page_id = (int) get_option('page_for_posts');
-    $blog_url = $blog_page_id > 0 ? get_permalink($blog_page_id) : home_url('/blog');
+    $blog_url = $blog_page_id > 0 ? get_permalink($blog_page_id) : home_url('/learn');
     $learn_url = home_url('/learn');
     $compare_url = home_url('/compare');
     $solutions_url = home_url('/solutions');
@@ -2012,6 +2184,342 @@ function aura_handle_contact_submit() {
 }
 add_action('admin_post_aura_contact_submit', 'aura_handle_contact_submit');
 add_action('admin_post_nopriv_aura_contact_submit', 'aura_handle_contact_submit');
+
+/**
+ * Determine whether a page ID is an author profile page.
+ *
+ * @param int $page_id Page ID.
+ * @return bool
+ */
+function dea_is_author_profile_page_id($page_id) {
+    $page_id = (int) $page_id;
+    if ($page_id <= 0 || 'page' !== get_post_type($page_id)) {
+        return false;
+    }
+
+    $template_slug = (string) get_page_template_slug($page_id);
+    if ('page-author.php' === $template_slug) {
+        return true;
+    }
+
+    $parent_id = (int) wp_get_post_parent_id($page_id);
+    if ($parent_id <= 0) {
+        return false;
+    }
+
+    return 'authors' === (string) get_post_field('post_name', $parent_id);
+}
+
+/**
+ * Collect author sameAs URLs from mapped WordPress user profile fields.
+ *
+ * @param int $user_id User ID.
+ * @return array<int,string>
+ */
+function dea_get_author_user_same_as_urls($user_id) {
+    $user_id = (int) $user_id;
+    if ($user_id <= 0) {
+        return array();
+    }
+
+    $user = get_userdata($user_id);
+    if (!$user instanceof WP_User) {
+        return array();
+    }
+
+    $candidates = array();
+
+    if (!empty($user->user_url)) {
+        $candidates[] = (string) $user->user_url;
+    }
+
+    $meta_keys = array(
+        'linkedin',
+        'linkedin_url',
+        'twitter',
+        'twitter_url',
+        'x',
+        'x_url',
+        'github',
+        'github_url',
+    );
+
+    foreach ($meta_keys as $meta_key) {
+        $value = get_user_meta($user_id, $meta_key, true);
+        if (is_string($value) && '' !== trim($value)) {
+            $candidates[] = trim($value);
+        }
+    }
+
+    $urls = array();
+    foreach ($candidates as $candidate) {
+        $url = esc_url_raw((string) $candidate);
+        if ('' === $url || !filter_var($url, FILTER_VALIDATE_URL)) {
+            continue;
+        }
+        $urls[] = $url;
+    }
+
+    return array_values(array_unique($urls));
+}
+
+/**
+ * Register author profile settings meta box.
+ */
+function dea_register_author_profile_meta_box() {
+    add_meta_box(
+        'dea_author_profile_settings',
+        __('Author Profile Settings', 'aura'),
+        'dea_render_author_profile_meta_box',
+        'page',
+        'normal',
+        'high'
+    );
+}
+add_action('add_meta_boxes_page', 'dea_register_author_profile_meta_box', 15);
+
+/**
+ * Render author profile settings meta box.
+ *
+ * @param WP_Post $post Current page object.
+ */
+function dea_render_author_profile_meta_box($post) {
+    if (!$post instanceof WP_Post) {
+        return;
+    }
+
+    if (!dea_is_author_profile_page_id((int) $post->ID)) {
+        echo '<p>' . esc_html__('This panel is used on author profile pages (template: Author Profile or child pages under /authors/).', 'aura') . '</p>';
+        return;
+    }
+
+    $author_user_id = (int) get_post_meta($post->ID, '_dea_author_user_id', true);
+    $job_title = (string) get_post_meta($post->ID, '_dea_author_job_title', true);
+    $short_bio = (string) get_post_meta($post->ID, '_dea_author_short_bio', true);
+    $long_bio = (string) get_post_meta($post->ID, '_dea_author_long_bio', true);
+    $same_as_raw = (string) get_post_meta($post->ID, '_dea_author_same_as', true);
+    $panel_label = (string) get_post_meta($post->ID, '_dea_author_panel_label', true);
+    $panel_title = (string) get_post_meta($post->ID, '_dea_author_panel_title', true);
+    $panel_body = (string) get_post_meta($post->ID, '_dea_author_panel_body', true);
+
+    if ('' === $short_bio) {
+        $short_bio = 'Reza Jahankohan is the Founder of DeAgenticAI and publishes on agentic policy enforcement, governed MPC signing, and AI-agent authority controls.';
+    }
+    if ('' === $long_bio) {
+        $long_bio = 'Reza Jahankohan is the Founder of DeAgenticAI and publishes research and implementation guidance on agentic policy enforcement, governed MPC signing, and AI-agent authority controls across Web3 and enterprise financial systems. His work focuses on making autonomous AI execution safe, governed, and auditable through cryptographic policy enforcement.';
+    }
+    if ('' === $panel_label) {
+        $panel_label = __('Authority Profile', 'aura');
+    }
+    if ('' === $panel_title) {
+        $panel_title = __('Reza Jahankohan — Founder, DeAgenticAI', 'aura');
+    }
+    if ('' === $panel_body) {
+        $panel_body = __('Reza Jahankohan is the Founder of DeAgenticAI and publishes on agentic policy enforcement, governed MPC signing, and AI-agent authority controls in Web3 and enterprise financial systems. This is his canonical author profile with verified references.', 'aura');
+    }
+
+    $users = get_users(array(
+        'orderby' => 'display_name',
+        'order' => 'ASC',
+        'fields' => array('ID', 'display_name', 'user_email'),
+        'number' => 300,
+    ));
+
+    wp_nonce_field('dea_author_profile_settings', 'dea_author_profile_settings_nonce');
+    ?>
+    <style>
+        .dea-meta-grid {
+            display: grid;
+            gap: 12px;
+            max-width: 980px;
+        }
+        .dea-meta-grid label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        .dea-meta-grid textarea,
+        .dea-meta-grid input[type="text"],
+        .dea-meta-grid select {
+            width: 100%;
+            max-width: 100%;
+        }
+        .dea-meta-note {
+            margin: 4px 0 0;
+            color: #646970;
+        }
+    </style>
+
+    <div class="dea-meta-grid">
+        <div>
+            <label for="dea_author_user_id"><?php esc_html_e('Map to WordPress User', 'aura'); ?></label>
+            <select id="dea_author_user_id" name="dea_author_user_id">
+                <option value="0"><?php esc_html_e('None (manual profile only)', 'aura'); ?></option>
+                <?php foreach ($users as $user) : ?>
+                    <?php
+                    if (!$user instanceof WP_User) {
+                        continue;
+                    }
+                    $label = trim((string) $user->display_name);
+                    $email = trim((string) $user->user_email);
+                    ?>
+                    <option value="<?php echo esc_attr((string) $user->ID); ?>" <?php selected($author_user_id, (int) $user->ID); ?>>
+                        <?php echo esc_html('' !== $email ? $label . ' (' . $email . ')' : $label); ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+            <p class="dea-meta-note"><?php esc_html_e('Used to list published content by this user on the profile page.', 'aura'); ?></p>
+        </div>
+
+        <div>
+            <label for="dea_author_job_title"><?php esc_html_e('Job Title', 'aura'); ?></label>
+            <input id="dea_author_job_title" name="dea_author_job_title" type="text" value="<?php echo esc_attr($job_title); ?>" placeholder="<?php esc_attr_e('Example: Founder, DeAgenticAI', 'aura'); ?>" />
+        </div>
+
+        <div>
+            <label for="dea_author_short_bio"><?php esc_html_e('Short Bio', 'aura'); ?></label>
+            <textarea id="dea_author_short_bio" name="dea_author_short_bio" rows="3"><?php echo esc_textarea($short_bio); ?></textarea>
+            <p class="dea-meta-note"><?php esc_html_e('Displayed below the author name in the page hero.', 'aura'); ?></p>
+        </div>
+
+        <div>
+            <label for="dea_author_long_bio"><?php esc_html_e('Long Bio', 'aura'); ?></label>
+            <textarea id="dea_author_long_bio" name="dea_author_long_bio" rows="6"><?php echo esc_textarea($long_bio); ?></textarea>
+            <p class="dea-meta-note"><?php esc_html_e('Displayed inside the Biography card.', 'aura'); ?></p>
+        </div>
+
+        <div>
+            <label for="dea_author_same_as"><?php esc_html_e('sameAs URLs', 'aura'); ?></label>
+            <textarea id="dea_author_same_as" name="dea_author_same_as" rows="4" placeholder="<?php esc_attr_e("One URL per line\nhttps://www.linkedin.com/in/...\nhttps://x.com/...", 'aura'); ?>"><?php echo esc_textarea($same_as_raw); ?></textarea>
+            <p class="dea-meta-note"><?php esc_html_e('Used in Person schema and external profile links on the page.', 'aura'); ?></p>
+        </div>
+
+        <div>
+            <label for="dea_author_panel_label"><?php esc_html_e('Authority Panel Label', 'aura'); ?></label>
+            <input id="dea_author_panel_label" name="dea_author_panel_label" type="text" value="<?php echo esc_attr($panel_label); ?>" />
+        </div>
+
+        <div>
+            <label for="dea_author_panel_title"><?php esc_html_e('Authority Panel Title', 'aura'); ?></label>
+            <input id="dea_author_panel_title" name="dea_author_panel_title" type="text" value="<?php echo esc_attr($panel_title); ?>" />
+        </div>
+
+        <div>
+            <label for="dea_author_panel_body"><?php esc_html_e('Authority Panel Description', 'aura'); ?></label>
+            <textarea id="dea_author_panel_body" name="dea_author_panel_body" rows="3"><?php echo esc_textarea($panel_body); ?></textarea>
+        </div>
+    </div>
+    <?php
+}
+
+/**
+ * Save author profile settings meta box.
+ *
+ * @param int $post_id Current page ID.
+ */
+function dea_save_author_profile_meta_box($post_id) {
+    $post_id = (int) $post_id;
+
+    if (!isset($_POST['dea_author_profile_settings_nonce'])) {
+        return;
+    }
+
+    $nonce = sanitize_text_field(wp_unslash($_POST['dea_author_profile_settings_nonce']));
+    if (!wp_verify_nonce($nonce, 'dea_author_profile_settings')) {
+        return;
+    }
+
+    if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
+        return;
+    }
+
+    if (!current_user_can('edit_page', $post_id)) {
+        return;
+    }
+
+    if (!dea_is_author_profile_page_id($post_id)) {
+        return;
+    }
+
+    $author_user_id = isset($_POST['dea_author_user_id']) ? absint(wp_unslash($_POST['dea_author_user_id'])) : 0;
+    if ($author_user_id > 0 && !get_userdata($author_user_id)) {
+        $author_user_id = 0;
+    }
+
+    if ($author_user_id > 0) {
+        update_post_meta($post_id, '_dea_author_user_id', $author_user_id);
+    } else {
+        delete_post_meta($post_id, '_dea_author_user_id');
+    }
+
+    $job_title = isset($_POST['dea_author_job_title']) ? sanitize_text_field(wp_unslash($_POST['dea_author_job_title'])) : '';
+    if ('' !== $job_title) {
+        update_post_meta($post_id, '_dea_author_job_title', $job_title);
+    } else {
+        delete_post_meta($post_id, '_dea_author_job_title');
+    }
+
+    $short_bio = isset($_POST['dea_author_short_bio']) ? sanitize_textarea_field(wp_unslash($_POST['dea_author_short_bio'])) : '';
+    if ('' !== $short_bio) {
+        update_post_meta($post_id, '_dea_author_short_bio', $short_bio);
+    } else {
+        delete_post_meta($post_id, '_dea_author_short_bio');
+    }
+
+    $long_bio = isset($_POST['dea_author_long_bio']) ? sanitize_textarea_field(wp_unslash($_POST['dea_author_long_bio'])) : '';
+    if ('' !== $long_bio) {
+        update_post_meta($post_id, '_dea_author_long_bio', $long_bio);
+    } else {
+        delete_post_meta($post_id, '_dea_author_long_bio');
+    }
+
+    $same_as_raw = isset($_POST['dea_author_same_as']) ? (string) wp_unslash($_POST['dea_author_same_as']) : '';
+    $same_as_lines = preg_split('/\r\n|\r|\n/', $same_as_raw);
+    $same_as_urls = array();
+    if (is_array($same_as_lines)) {
+        foreach ($same_as_lines as $line) {
+            $line = trim((string) $line);
+            if ('' === $line) {
+                continue;
+            }
+            $url = esc_url_raw($line);
+            if ('' === $url || !filter_var($url, FILTER_VALIDATE_URL)) {
+                continue;
+            }
+            $same_as_urls[] = $url;
+        }
+    }
+    $same_as_urls = array_values(array_unique($same_as_urls));
+
+    if (!empty($same_as_urls)) {
+        update_post_meta($post_id, '_dea_author_same_as', implode("\n", $same_as_urls));
+    } else {
+        delete_post_meta($post_id, '_dea_author_same_as');
+    }
+
+    $panel_label = isset($_POST['dea_author_panel_label']) ? sanitize_text_field(wp_unslash($_POST['dea_author_panel_label'])) : '';
+    $panel_title = isset($_POST['dea_author_panel_title']) ? sanitize_text_field(wp_unslash($_POST['dea_author_panel_title'])) : '';
+    $panel_body = isset($_POST['dea_author_panel_body']) ? sanitize_textarea_field(wp_unslash($_POST['dea_author_panel_body'])) : '';
+
+    if ('' !== $panel_label) {
+        update_post_meta($post_id, '_dea_author_panel_label', $panel_label);
+    } else {
+        delete_post_meta($post_id, '_dea_author_panel_label');
+    }
+
+    if ('' !== $panel_title) {
+        update_post_meta($post_id, '_dea_author_panel_title', $panel_title);
+    } else {
+        delete_post_meta($post_id, '_dea_author_panel_title');
+    }
+
+    if ('' !== $panel_body) {
+        update_post_meta($post_id, '_dea_author_panel_body', $panel_body);
+    } else {
+        delete_post_meta($post_id, '_dea_author_panel_body');
+    }
+}
+add_action('save_post_page', 'dea_save_author_profile_meta_box', 10, 1);
 
 /**
  * Blog post settings metabox.

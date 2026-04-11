@@ -282,8 +282,8 @@ function aura_compare_sanitize_field_value($value, $type) {
         return '' !== $value ? esc_url_raw($value) : '';
     }
 
-    if ('textarea' === $type) {
-        return sanitize_textarea_field($value);
+    if ('textarea' === $type || 'richtext' === $type) {
+        return wp_kses_post($value);
     }
 
     return sanitize_text_field($value);
@@ -1279,10 +1279,11 @@ function aura_get_compare_legacy_seed_content($slug, $title = '') {
 /**
  * Get merged compare payload for front-end rendering.
  *
- * @param int $post_id Compare post ID.
+ * @param int  $post_id Compare post ID.
+ * @param bool $include_defaults Whether seed defaults should be merged.
  * @return array<string,mixed>
  */
-function aura_get_compare_payload($post_id) {
+function aura_get_compare_payload($post_id, $include_defaults = true) {
     $post_id = (int) $post_id;
     if ($post_id <= 0) {
         return array(
@@ -1302,11 +1303,22 @@ function aura_get_compare_payload($post_id) {
     $post = get_post($post_id);
     $slug = $post instanceof WP_Post ? (string) $post->post_name : '';
     $title = $post instanceof WP_Post ? (string) $post->post_title : '';
-    $defaults = aura_get_compare_seed_payload($slug, $title);
+    $defaults = $include_defaults ? aura_get_compare_seed_payload($slug, $title) : array(
+        'entity_left' => '',
+        'entity_right' => '',
+        'primary_question' => '',
+        'frame' => '',
+        'quick_verdict' => '',
+        'recommended_for' => array(),
+        'not_ideal_for' => array(),
+        'matrix' => array(),
+        'steps' => array(),
+        'faqs' => array(),
+    );
 
     $entity_left = aura_compare_meta_text($post_id, '_aura_compare_entity_left', (string) $defaults['entity_left']);
     $entity_right = aura_compare_meta_text($post_id, '_aura_compare_entity_right', (string) $defaults['entity_right']);
-    if ('' === trim($entity_left) || '' === trim($entity_right)) {
+    if ($include_defaults && ('' === trim($entity_left) || '' === trim($entity_right))) {
         $guessed = aura_guess_compare_entities_from_title($title);
         if ('' === trim($entity_left)) {
             $entity_left = $guessed[0];
@@ -1317,17 +1329,17 @@ function aura_get_compare_payload($post_id) {
     }
 
     $matrix = aura_compare_meta_rows($post_id, '_aura_compare_matrix', array('criterion', 'left', 'right', 'winner'));
-    if (empty($matrix)) {
+    if ($include_defaults && empty($matrix)) {
         $matrix = aura_compare_normalize_rows($defaults['matrix'], array('criterion', 'left', 'right', 'winner'));
     }
 
     $steps = aura_compare_meta_rows($post_id, '_aura_compare_steps', array('title', 'text'));
-    if (empty($steps)) {
+    if ($include_defaults && empty($steps)) {
         $steps = aura_compare_normalize_rows($defaults['steps'], array('title', 'text'));
     }
 
     $faqs = aura_compare_meta_rows($post_id, '_aura_compare_faqs', array('question', 'answer'));
-    if (empty($faqs)) {
+    if ($include_defaults && empty($faqs)) {
         $faqs = aura_compare_normalize_rows($defaults['faqs'], array('question', 'answer'));
     }
 
@@ -1763,10 +1775,11 @@ function aura_get_pillar_default_faq_rows($title, $focus_label) {
 /**
  * Get FAQ payload for a pillar page.
  *
- * @param int $post_id Pillar post ID.
+ * @param int  $post_id Pillar post ID.
+ * @param bool $include_defaults Whether scaffold defaults should be merged.
  * @return array<int,array<string,string>>
  */
-function aura_get_pillar_faq_payload($post_id) {
+function aura_get_pillar_faq_payload($post_id, $include_defaults = true) {
     $post = get_post((int) $post_id);
     if (!$post instanceof WP_Post) {
         return array();
@@ -1777,9 +1790,13 @@ function aura_get_pillar_faq_payload($post_id) {
         return $rows;
     }
 
-    $scaffold = aura_get_pillar_scaffold_payload((int) $post->ID);
-    $focus_label = isset($scaffold['focus_label']) ? (string) $scaffold['focus_label'] : '';
-    return aura_get_pillar_default_faq_rows((string) $post->post_title, $focus_label);
+    if ($include_defaults) {
+        $scaffold = aura_get_pillar_scaffold_payload((int) $post->ID);
+        $focus_label = isset($scaffold['focus_label']) ? (string) $scaffold['focus_label'] : '';
+        return aura_get_pillar_default_faq_rows((string) $post->post_title, $focus_label);
+    }
+
+    return array();
 }
 
 /**
@@ -1847,7 +1864,8 @@ add_action('add_meta_boxes_aura_pillar', 'aura_register_pillar_faq_meta_box');
 function aura_render_pillar_visual_meta_box($post) {
     wp_nonce_field('aura_pillar_visual_save_' . $post->ID, 'aura_pillar_visual_nonce');
 
-    $current_step = aura_get_pillar_highlight_step((int) $post->ID);
+    $saved_step = (int) get_post_meta((int) $post->ID, '_aura_pillar_highlight_step', true);
+    $current_step = ($saved_step >= 1 && $saved_step <= 6) ? $saved_step : 0;
     $steps = aura_get_happy_path_step_labels();
     $recommended_step = 0;
     if ($post instanceof WP_Post && function_exists('aura_get_pillar_seed_payload')) {
@@ -1865,6 +1883,7 @@ function aura_render_pillar_visual_meta_box($post) {
     <p>
         <label for="aura-pillar-highlight-step" class="screen-reader-text"><?php esc_html_e('Highlighted Happy Path Step', 'aura'); ?></label>
         <select id="aura-pillar-highlight-step" name="aura_pillar_highlight_step" style="width: 100%;">
+            <option value="" <?php selected($current_step, 0); ?>><?php esc_html_e('Select a step (optional)', 'aura'); ?></option>
             <?php foreach ($steps as $index => $label) : ?>
                 <option value="<?php echo esc_attr((string) $index); ?>" <?php selected($current_step, $index); ?>>
                     <?php echo esc_html(sprintf(__('Step %1$d - %2$s', 'aura'), $index, $label)); ?>
@@ -1891,7 +1910,7 @@ function aura_render_pillar_faq_meta_box($post) {
         aura_marketing_output_metabox_assets();
     }
 
-    $faqs = aura_get_pillar_faq_payload((int) $post->ID);
+    $faqs = aura_get_pillar_faq_payload((int) $post->ID, false);
     ?>
     <p class="aura-marketing-note">
         <?php esc_html_e('These rows power both the visible FAQ section on pillar pages and FAQPage schema output.', 'aura'); ?>
@@ -1915,7 +1934,7 @@ function aura_render_pillar_faq_meta_box($post) {
                 array(
                     'key' => 'answer',
                     'label' => __('Answer', 'aura'),
-                    'type' => 'textarea',
+                    'type' => 'richtext',
                     'placeholder' => __('Provide a concise implementation-oriented answer.', 'aura'),
                 ),
             ),
@@ -1990,7 +2009,7 @@ function aura_save_pillar_faq_meta_box($post_id) {
         isset($_POST['aura_pillar_faq_rows']) ? $_POST['aura_pillar_faq_rows'] : array(),
         array(
             'question' => 'text',
-            'answer' => 'textarea',
+            'answer' => 'richtext',
         )
     );
 
@@ -2050,6 +2069,9 @@ function aura_render_dataset_meta_box($post) {
 
     $post_id = (int) $post->ID;
     wp_nonce_field('aura_dataset_meta_save_' . $post_id, 'aura_dataset_meta_nonce');
+    if (function_exists('aura_marketing_output_metabox_assets')) {
+        aura_marketing_output_metabox_assets();
+    }
 
     $source_url = (string) get_post_meta($post_id, '_aura_dataset_source_url', true);
     $download_url = (string) get_post_meta($post_id, '_aura_dataset_download_url', true);
@@ -2085,7 +2107,19 @@ function aura_render_dataset_meta_box($post) {
 
     <div class="aura-marketing-field" style="margin-top: 12px;">
         <label for="aura-dataset-methodology"><?php esc_html_e('Methodology Notes', 'aura'); ?></label>
-        <textarea id="aura-dataset-methodology" name="aura_dataset_methodology" rows="4" placeholder="<?php esc_attr_e('Describe collection process, sampling, and caveats.', 'aura'); ?>"><?php echo esc_textarea($methodology); ?></textarea>
+        <?php
+        wp_editor(
+            $methodology,
+            'aura-dataset-methodology',
+            array(
+                'textarea_name' => 'aura_dataset_methodology',
+                'textarea_rows' => 5,
+                'media_buttons' => false,
+                'teeny' => true,
+                'quicktags' => true,
+            )
+        );
+        ?>
     </div>
     <?php
 }
@@ -2119,7 +2153,7 @@ function aura_save_dataset_meta_box($post_id) {
     $download_url = isset($_POST['aura_dataset_download_url']) ? esc_url_raw(wp_unslash((string) $_POST['aura_dataset_download_url'])) : '';
     $license = isset($_POST['aura_dataset_license']) ? sanitize_text_field(wp_unslash((string) $_POST['aura_dataset_license'])) : '';
     $coverage = isset($_POST['aura_dataset_coverage_period']) ? sanitize_text_field(wp_unslash((string) $_POST['aura_dataset_coverage_period'])) : '';
-    $methodology = isset($_POST['aura_dataset_methodology']) ? sanitize_textarea_field(wp_unslash((string) $_POST['aura_dataset_methodology'])) : '';
+    $methodology = isset($_POST['aura_dataset_methodology']) ? wp_kses_post(wp_unslash((string) $_POST['aura_dataset_methodology'])) : '';
 
     aura_compare_update_meta($post_id, '_aura_dataset_source_url', $source_url);
     aura_compare_update_meta($post_id, '_aura_dataset_download_url', $download_url);
@@ -2140,7 +2174,7 @@ function aura_render_compare_meta_box($post) {
     }
 
     $post_id = (int) $post->ID;
-    $payload = aura_get_compare_payload($post_id);
+    $payload = aura_get_compare_payload($post_id, false);
 
     wp_nonce_field('aura_compare_meta_save_' . $post_id, 'aura_compare_meta_nonce');
 
@@ -2173,12 +2207,36 @@ function aura_render_compare_meta_box($post) {
 
     <div class="aura-marketing-field" style="margin-top: 12px;">
         <label for="aura-compare-frame"><?php esc_html_e('Frame / Angle', 'aura'); ?></label>
-        <textarea id="aura-compare-frame" name="aura_compare_frame" rows="3" placeholder="<?php esc_attr_e('Describe the evaluation angle this page takes.', 'aura'); ?>"><?php echo esc_textarea(isset($payload['frame']) ? (string) $payload['frame'] : ''); ?></textarea>
+        <?php
+        wp_editor(
+            isset($payload['frame']) ? (string) $payload['frame'] : '',
+            'aura-compare-frame',
+            array(
+                'textarea_name' => 'aura_compare_frame',
+                'textarea_rows' => 4,
+                'media_buttons' => false,
+                'teeny' => true,
+                'quicktags' => true,
+            )
+        );
+        ?>
     </div>
 
     <div class="aura-marketing-field" style="margin-top: 12px;">
         <label for="aura-compare-quick-verdict"><?php esc_html_e('Quick Verdict', 'aura'); ?></label>
-        <textarea id="aura-compare-quick-verdict" name="aura_compare_quick_verdict" rows="4" placeholder="<?php esc_attr_e('Summarize who should choose which option and why.', 'aura'); ?>"><?php echo esc_textarea(isset($payload['quick_verdict']) ? (string) $payload['quick_verdict'] : ''); ?></textarea>
+        <?php
+        wp_editor(
+            isset($payload['quick_verdict']) ? (string) $payload['quick_verdict'] : '',
+            'aura-compare-quick-verdict',
+            array(
+                'textarea_name' => 'aura_compare_quick_verdict',
+                'textarea_rows' => 5,
+                'media_buttons' => false,
+                'teeny' => true,
+                'quicktags' => true,
+            )
+        );
+        ?>
     </div>
 
     <div class="aura-marketing-two-col" style="margin-top: 12px;">
@@ -2210,13 +2268,13 @@ function aura_render_compare_meta_box($post) {
                 array(
                     'key' => 'left',
                     'label' => __('Left Side', 'aura'),
-                    'type' => 'textarea',
+                    'type' => 'richtext',
                     'placeholder' => __('How the left entity handles this criterion.', 'aura'),
                 ),
                 array(
                     'key' => 'right',
                     'label' => __('Right Side', 'aura'),
-                    'type' => 'textarea',
+                    'type' => 'richtext',
                     'placeholder' => __('How the right entity handles this criterion.', 'aura'),
                 ),
                 array(
@@ -2245,7 +2303,7 @@ function aura_render_compare_meta_box($post) {
                 array(
                     'key' => 'text',
                     'label' => __('Step Detail', 'aura'),
-                    'type' => 'textarea',
+                    'type' => 'richtext',
                     'placeholder' => __('Explain what to do and how to validate this step.', 'aura'),
                 ),
             ),
@@ -2268,7 +2326,7 @@ function aura_render_compare_meta_box($post) {
                 array(
                     'key' => 'answer',
                     'label' => __('Answer', 'aura'),
-                    'type' => 'textarea',
+                    'type' => 'richtext',
                     'placeholder' => __('Provide a concise and evidence-oriented answer.', 'aura'),
                 ),
             ),

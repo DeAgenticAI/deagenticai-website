@@ -146,7 +146,7 @@
                                     ?>
                                     <article class="marketing-faq-item">
                                         <h3><?php echo esc_html($question); ?></h3>
-                                        <p><?php echo esc_html($answer); ?></p>
+                                        <?php echo function_exists('aura_marketing_render_rich_text') ? aura_marketing_render_rich_text($answer) : wp_kses_post(wpautop($answer)); ?>
                                     </article>
                                 <?php endforeach; ?>
                             </div>
@@ -159,7 +159,7 @@
                                 <div class="marketing-section-heading">
                                     <h2><?php esc_html_e('Evaluation Snapshot', 'aura'); ?></h2>
                                     <?php if ('' !== $compare_frame) : ?>
-                                        <p><?php echo esc_html($compare_frame); ?></p>
+                                        <?php echo function_exists('aura_marketing_render_rich_text') ? aura_marketing_render_rich_text($compare_frame) : wp_kses_post(wpautop($compare_frame)); ?>
                                     <?php endif; ?>
                                 </div>
 
@@ -168,7 +168,7 @@
                                 <?php endif; ?>
 
                                 <?php if ('' !== $compare_quick_verdict) : ?>
-                                    <p class="marketing-body-copy"><?php echo esc_html($compare_quick_verdict); ?></p>
+                                    <div class="marketing-body-copy"><?php echo function_exists('aura_marketing_render_rich_text') ? aura_marketing_render_rich_text($compare_quick_verdict) : wp_kses_post(wpautop($compare_quick_verdict)); ?></div>
                                 <?php endif; ?>
                             </section>
                         <?php endif; ?>
@@ -203,8 +203,8 @@
                                                 ?>
                                                 <tr>
                                                     <th><?php echo esc_html($criterion); ?></th>
-                                                    <td><?php echo esc_html($left); ?></td>
-                                                    <td><?php echo esc_html($right); ?></td>
+                                                    <td><?php echo function_exists('aura_marketing_render_rich_text') ? aura_marketing_render_rich_text($left) : wp_kses_post(wpautop($left)); ?></td>
+                                                    <td><?php echo function_exists('aura_marketing_render_rich_text') ? aura_marketing_render_rich_text($right) : wp_kses_post(wpautop($right)); ?></td>
                                                     <td><?php echo esc_html($winner); ?></td>
                                                 </tr>
                                             <?php endforeach; ?>
@@ -272,7 +272,7 @@
                                                     <h3><?php echo esc_html($step_title); ?></h3>
                                                 <?php endif; ?>
                                                 <?php if ('' !== $step_text) : ?>
-                                                    <p><?php echo esc_html($step_text); ?></p>
+                                                    <?php echo function_exists('aura_marketing_render_rich_text') ? aura_marketing_render_rich_text($step_text) : wp_kses_post(wpautop($step_text)); ?>
                                                 <?php endif; ?>
                                             </div>
                                         </li>
@@ -299,7 +299,7 @@
                                         ?>
                                         <article class="marketing-faq-item">
                                             <h3><?php echo esc_html($question); ?></h3>
-                                            <p><?php echo esc_html($answer); ?></p>
+                                            <?php echo function_exists('aura_marketing_render_rich_text') ? aura_marketing_render_rich_text($answer) : wp_kses_post(wpautop($answer)); ?>
                                         </article>
                                     <?php endforeach; ?>
                                 </div>

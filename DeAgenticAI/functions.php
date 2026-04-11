@@ -62,8 +62,8 @@ function aura_setup() {
         'primary' => __('Primary Menu', 'aura'),
     ));
 
-    // Create default pages on theme activation
-    aura_create_default_pages();
+    // Seed default pages once; do not recreate deleted drafts on every request.
+    aura_maybe_create_default_pages();
 
     // Switch default core markup to output valid HTML5
     add_theme_support('html5', array(
@@ -80,6 +80,21 @@ function aura_setup() {
     add_theme_support('customize-selective-refresh-widgets');
 }
 add_action('after_setup_theme', 'aura_setup');
+
+/**
+ * Seed default pages once.
+ *
+ * Set option to prevent continuous reseeding that recreates deleted drafts.
+ */
+function aura_maybe_create_default_pages() {
+    $seed_flag = (string) get_option('aura_default_pages_seeded', '');
+    if ('1' === $seed_flag) {
+        return;
+    }
+
+    aura_create_default_pages();
+    update_option('aura_default_pages_seeded', '1', false);
+}
 
 /**
  * Create default pages on theme activation

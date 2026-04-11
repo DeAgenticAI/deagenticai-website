@@ -501,6 +501,12 @@
     color: var(--primary);
 }
 
+.marketing-body-copy a {
+    color: var(--primary);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
 .marketing-grid-section,
 .marketing-section-card,
 .marketing-side-card {
@@ -777,6 +783,24 @@
 
 .marketing-entry-visual {
     position: relative;
+}
+
+.glossary-entry-page .marketing-entry-hero {
+    grid-template-columns: 1fr;
+}
+
+.glossary-entry-page .marketing-entry-copy {
+    max-width: 64rem;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.glossary-entry-page .marketing-badge {
+    justify-content: center;
+}
+
+.glossary-entry-page .marketing-lead-left {
+    margin-left: auto;
 }
 
 .marketing-featured-media,

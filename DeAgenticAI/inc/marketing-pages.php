@@ -268,12 +268,10 @@ function aura_get_glossary_entry_payload($page_id = 0) {
     $related_entities = aura_get_marketing_page_rows($page_id, '_aura_glossary_related_entities', array('label', 'url'));
     $further_reading = aura_get_marketing_page_rows($page_id, '_aura_glossary_further_reading', array('label', 'url'));
     $faqs = aura_get_marketing_page_rows($page_id, '_aura_glossary_faqs', array('question', 'answer'));
+    $definition = trim((string) get_post_field('post_excerpt', $page_id));
 
     return array(
-        'definition' => (function() use ($page_id) {
-            $def = trim((string) get_post_meta($page_id, '_dea_definition', true));
-            return '' !== $def ? $def : aura_get_marketing_page_excerpt($page_id, 28);
-        })(),
+        'definition' => $definition,
         'why_it_matters' => '' !== trim($why_it_matters) ? $why_it_matters : $default_why,
         'how_steps' => !empty($how_steps) ? $how_steps : $default_how_steps,
         'related_entities' => !empty($related_entities) ? $related_entities : $default_related,
@@ -414,6 +412,9 @@ function aura_marketing_output_metabox_assets() {
         .aura-marketing-field textarea {
             width: 100%;
         }
+        .aura-marketing-field .wp-editor-wrap {
+            max-width: 100%;
+        }
         .aura-marketing-repeater {
             border: 1px solid #dcdcde;
             border-radius: 6px;
@@ -454,6 +455,84 @@ function aura_marketing_output_metabox_assets() {
 
             window.auraMarketingRepeatersReady = true;
 
+            var richTextCounter = 0;
+            var initAttempts = 0;
+            var maxInitAttempts = 30;
+
+            function initRichTextEditors(context) {
+                if (!window.wp || !wp.editor || typeof wp.editor.initialize !== 'function') {
+                    return false;
+                }
+
+                var root = context || document;
+                root.querySelectorAll('textarea[data-aura-richtext="1"]').forEach(function(textarea) {
+                    if (textarea.dataset.auraEditorReady === '1') {
+                        return;
+                    }
+
+                    if (!textarea.id) {
+                        richTextCounter += 1;
+                        textarea.id = 'aura-richtext-' + richTextCounter;
+                    }
+
+                    wp.editor.initialize(textarea.id, {
+                        tinymce: {
+                            wpautop: true,
+                            toolbar1: 'bold italic link unlink bullist numlist blockquote undo redo'
+                        },
+                        quicktags: true,
+                        mediaButtons: false
+                    });
+
+                    textarea.dataset.auraEditorReady = '1';
+                });
+
+                return true;
+            }
+
+            function removeRichTextEditors(context) {
+                if (!window.wp || !wp.editor || typeof wp.editor.remove !== 'function') {
+                    return;
+                }
+
+                context.querySelectorAll('textarea[data-aura-richtext="1"]').forEach(function(textarea) {
+                    if (!textarea.id || textarea.dataset.auraEditorReady !== '1') {
+                        return;
+                    }
+                    wp.editor.remove(textarea.id);
+                    textarea.dataset.auraEditorReady = '0';
+                });
+            }
+
+            function bootRichTextEditors() {
+                var ok = initRichTextEditors(document);
+                if (ok) {
+                    return;
+                }
+
+                initAttempts += 1;
+                if (initAttempts < maxInitAttempts) {
+                    window.setTimeout(bootRichTextEditors, 200);
+                }
+            }
+
+            bootRichTextEditors();
+
+            document.addEventListener('DOMContentLoaded', function() {
+                bootRichTextEditors();
+            });
+
+            document.addEventListener('submit', function(event) {
+                var form = event.target;
+                if (!form || form.tagName !== 'FORM') {
+                    return;
+                }
+
+                if (window.tinyMCE && typeof window.tinyMCE.triggerSave === 'function') {
+                    window.tinyMCE.triggerSave();
+                }
+            }, true);
+
             document.addEventListener('click', function(event) {
                 var addTarget = event.target.closest('[data-aura-add-row]');
                 if (addTarget) {
@@ -469,7 +548,9 @@ function aura_marketing_output_metabox_assets() {
                         return;
                     }
 
-                    rows.appendChild(template.content.cloneNode(true));
+                    var fragment = template.content.cloneNode(true);
+                    rows.appendChild(fragment);
+                    initRichTextEditors(rows);
                     return;
                 }
 
@@ -486,12 +567,15 @@ function aura_marketing_output_metabox_assets() {
 
                 var rows = rowsWrap.querySelectorAll('.aura-marketing-repeater-row');
                 if (rows.length === 1) {
+                    removeRichTextEditors(row);
                     row.querySelectorAll('input, textarea').forEach(function(field) {
                         field.value = '';
                     });
+                    initRichTextEditors(row);
                     return;
                 }
 
+                removeRichTextEditors(row);
                 row.remove();
             });
         })();
@@ -561,7 +645,14 @@ function aura_marketing_render_repeater_row($group_name, $fields, $row) {
                 ?>
                 <div class="aura-marketing-field">
                     <label><?php echo esc_html($label); ?></label>
-                    <?php if ('textarea' === $type) : ?>
+                    <?php if ('richtext' === $type) : ?>
+                        <textarea
+                            rows="4"
+                            data-aura-richtext="1"
+                            name="<?php echo esc_attr($group_name); ?>[<?php echo esc_attr($key); ?>][]"
+                            placeholder="<?php echo esc_attr($placeholder); ?>"
+                        ><?php echo esc_textarea($value); ?></textarea>
+                    <?php elseif ('textarea' === $type) : ?>
                         <textarea rows="3" name="<?php echo esc_attr($group_name); ?>[<?php echo esc_attr($key); ?>][]" placeholder="<?php echo esc_attr($placeholder); ?>"><?php echo esc_textarea($value); ?></textarea>
                     <?php else : ?>
                         <input type="<?php echo 'url' === $type ? 'url' : 'text'; ?>" name="<?php echo esc_attr($group_name); ?>[<?php echo esc_attr($key); ?>][]" value="<?php echo esc_attr($value); ?>" placeholder="<?php echo esc_attr($placeholder); ?>">
@@ -627,6 +718,30 @@ function aura_register_marketing_page_meta_boxes($post) {
 add_action('add_meta_boxes_page', 'aura_register_marketing_page_meta_boxes');
 
 /**
+ * Ensure editor assets are available for custom richtext repeater fields.
+ *
+ * @param string $hook_suffix Current admin screen hook.
+ */
+function aura_marketing_enqueue_admin_editor_assets($hook_suffix) {
+    if (!in_array($hook_suffix, array('post.php', 'post-new.php'), true)) {
+        return;
+    }
+
+    $screen = function_exists('get_current_screen') ? get_current_screen() : null;
+    if (
+        !$screen
+        || !in_array((string) $screen->post_type, array('page', 'aura_pillar', 'aura_compare', 'aura_dataset'), true)
+    ) {
+        return;
+    }
+
+    if (function_exists('wp_enqueue_editor')) {
+        wp_enqueue_editor();
+    }
+}
+add_action('admin_enqueue_scripts', 'aura_marketing_enqueue_admin_editor_assets');
+
+/**
  * Render glossary entry metabox.
  *
  * @param WP_Post $post Current post.
@@ -634,8 +749,11 @@ add_action('add_meta_boxes_page', 'aura_register_marketing_page_meta_boxes');
 function aura_render_glossary_entry_meta_box($post) {
     aura_marketing_output_metabox_assets();
     wp_nonce_field('aura_save_glossary_entry_fields', 'aura_glossary_entry_nonce');
-
-    $payload = aura_get_glossary_entry_payload($post->ID);
+    $why_it_matters = aura_get_marketing_page_meta($post->ID, '_aura_glossary_why_it_matters');
+    $how_steps = aura_get_marketing_page_rows($post->ID, '_aura_glossary_how_steps', array('title', 'text'));
+    $related_entities = aura_get_marketing_page_rows($post->ID, '_aura_glossary_related_entities', array('label', 'url'));
+    $further_reading = aura_get_marketing_page_rows($post->ID, '_aura_glossary_further_reading', array('label', 'url'));
+    $faqs = aura_get_marketing_page_rows($post->ID, '_aura_glossary_faqs', array('question', 'answer'));
     ?>
     <p class="aura-marketing-note">
         <?php esc_html_e('Use the page excerpt for the one-sentence citable definition. Use the main editor for the two-paragraph explanation and technical context.', 'aura'); ?>
@@ -646,7 +764,19 @@ function aura_render_glossary_entry_meta_box($post) {
 
     <div class="aura-marketing-field" style="margin-bottom: 16px;">
         <label for="aura-glossary-why-it-matters"><?php esc_html_e('Why It Matters', 'aura'); ?></label>
-        <textarea id="aura-glossary-why-it-matters" rows="4" name="aura_glossary_why_it_matters"><?php echo esc_textarea($payload['why_it_matters']); ?></textarea>
+        <?php
+        wp_editor(
+            $why_it_matters,
+            'aura-glossary-why-it-matters',
+            array(
+                'textarea_name' => 'aura_glossary_why_it_matters',
+                'textarea_rows' => 6,
+                'media_buttons' => false,
+                'teeny' => true,
+                'quicktags' => true,
+            )
+        );
+        ?>
     </div>
 
     <?php
@@ -654,7 +784,7 @@ function aura_render_glossary_entry_meta_box($post) {
         'aura-glossary-how-steps',
         __('How It Works', 'aura'),
         __('Add 4 to 6 mechanism steps for the glossary entry.', 'aura'),
-        $payload['how_steps'],
+        $how_steps,
         'aura_glossary_how_steps',
         array(
             array(
@@ -666,7 +796,7 @@ function aura_render_glossary_entry_meta_box($post) {
             array(
                 'key' => 'text',
                 'label' => __('Step Description', 'aura'),
-                'type' => 'textarea',
+                'type' => 'richtext',
                 'placeholder' => __('Explain what happens in this step.', 'aura'),
             ),
         ),
@@ -677,7 +807,7 @@ function aura_render_glossary_entry_meta_box($post) {
         'aura-glossary-related-entities',
         __('Related Entities', 'aura'),
         __('Add at least three related glossary links mentioned on this page.', 'aura'),
-        $payload['related_entities'],
+        $related_entities,
         'aura_glossary_related_entities',
         array(
             array(
@@ -700,7 +830,7 @@ function aura_render_glossary_entry_meta_box($post) {
         'aura-glossary-further-reading',
         __('Further Reading', 'aura'),
         __('Link to pillar pages, guides, or supporting resources.', 'aura'),
-        $payload['further_reading'],
+        $further_reading,
         'aura_glossary_further_reading',
         array(
             array(
@@ -723,7 +853,7 @@ function aura_render_glossary_entry_meta_box($post) {
         'aura-glossary-faqs',
         __('FAQ Block', 'aura'),
         __('These questions are used for both the visible FAQ section and FAQPage schema.', 'aura'),
-        $payload['faqs'],
+        $faqs,
         'aura_glossary_faqs',
         array(
             array(
@@ -735,7 +865,7 @@ function aura_render_glossary_entry_meta_box($post) {
             array(
                 'key' => 'answer',
                 'label' => __('Answer', 'aura'),
-                'type' => 'textarea',
+                'type' => 'richtext',
                 'placeholder' => __('Answer the follow-up question in 2 to 3 sentences.', 'aura'),
             ),
         ),
@@ -751,8 +881,18 @@ function aura_render_glossary_entry_meta_box($post) {
 function aura_render_solution_entry_meta_box($post) {
     aura_marketing_output_metabox_assets();
     wp_nonce_field('aura_save_solution_entry_fields', 'aura_solution_entry_nonce');
-
-    $payload = aura_get_solution_entry_payload($post->ID);
+    $eyebrow = aura_get_marketing_page_meta($post->ID, '_aura_solution_eyebrow');
+    $primary_cta_label = aura_get_marketing_page_meta($post->ID, '_aura_solution_primary_cta_label');
+    $primary_cta_url = aura_get_marketing_page_meta($post->ID, '_aura_solution_primary_cta_url');
+    $secondary_cta_label = aura_get_marketing_page_meta($post->ID, '_aura_solution_secondary_cta_label');
+    $secondary_cta_url = aura_get_marketing_page_meta($post->ID, '_aura_solution_secondary_cta_url');
+    $case_study_title = aura_get_marketing_page_meta($post->ID, '_aura_solution_case_study_title');
+    $case_study_body = aura_get_marketing_page_meta($post->ID, '_aura_solution_case_study_body');
+    $steps = aura_get_marketing_page_rows($post->ID, '_aura_solution_steps', array('title', 'text'));
+    $glossary_links = aura_get_marketing_page_rows($post->ID, '_aura_solution_glossary_links', array('label', 'url'));
+    $resource_links = aura_get_marketing_page_rows($post->ID, '_aura_solution_resource_links', array('label', 'url'));
+    $compare_links = aura_get_marketing_page_rows($post->ID, '_aura_solution_compare_links', array('label', 'url'));
+    $faqs = aura_get_marketing_page_rows($post->ID, '_aura_solution_faqs', array('question', 'answer'));
     ?>
     <p class="aura-marketing-note">
         <?php esc_html_e('Use the page title as the pain-led H1. Use the excerpt for the opening summary and include the semantic triple within the first 150 words of the rendered page.', 'aura'); ?>
@@ -762,39 +902,51 @@ function aura_render_solution_entry_meta_box($post) {
         <div class="aura-marketing-two-col">
             <div class="aura-marketing-field">
                 <label for="aura-solution-eyebrow"><?php esc_html_e('Eyebrow Label', 'aura'); ?></label>
-                <input id="aura-solution-eyebrow" type="text" name="aura_solution_eyebrow" value="<?php echo esc_attr($payload['eyebrow']); ?>">
+                <input id="aura-solution-eyebrow" type="text" name="aura_solution_eyebrow" value="<?php echo esc_attr($eyebrow); ?>">
             </div>
             <div class="aura-marketing-field">
                 <label for="aura-solution-primary-cta-label"><?php esc_html_e('Primary CTA Label', 'aura'); ?></label>
-                <input id="aura-solution-primary-cta-label" type="text" name="aura_solution_primary_cta_label" value="<?php echo esc_attr($payload['primary_cta_label']); ?>">
+                <input id="aura-solution-primary-cta-label" type="text" name="aura_solution_primary_cta_label" value="<?php echo esc_attr($primary_cta_label); ?>">
             </div>
         </div>
 
         <div class="aura-marketing-two-col">
             <div class="aura-marketing-field">
                 <label for="aura-solution-primary-cta-url"><?php esc_html_e('Primary CTA URL', 'aura'); ?></label>
-                <input id="aura-solution-primary-cta-url" type="url" name="aura_solution_primary_cta_url" value="<?php echo esc_attr($payload['primary_cta_url']); ?>">
+                <input id="aura-solution-primary-cta-url" type="url" name="aura_solution_primary_cta_url" value="<?php echo esc_attr($primary_cta_url); ?>">
             </div>
             <div class="aura-marketing-field">
                 <label for="aura-solution-secondary-cta-label"><?php esc_html_e('Secondary CTA Label', 'aura'); ?></label>
-                <input id="aura-solution-secondary-cta-label" type="text" name="aura_solution_secondary_cta_label" value="<?php echo esc_attr($payload['secondary_cta_label']); ?>">
+                <input id="aura-solution-secondary-cta-label" type="text" name="aura_solution_secondary_cta_label" value="<?php echo esc_attr($secondary_cta_label); ?>">
             </div>
         </div>
 
         <div class="aura-marketing-two-col">
             <div class="aura-marketing-field">
                 <label for="aura-solution-secondary-cta-url"><?php esc_html_e('Secondary CTA URL', 'aura'); ?></label>
-                <input id="aura-solution-secondary-cta-url" type="url" name="aura_solution_secondary_cta_url" value="<?php echo esc_attr($payload['secondary_cta_url']); ?>">
+                <input id="aura-solution-secondary-cta-url" type="url" name="aura_solution_secondary_cta_url" value="<?php echo esc_attr($secondary_cta_url); ?>">
             </div>
             <div class="aura-marketing-field">
                 <label for="aura-solution-case-title"><?php esc_html_e('Case Study / Simulation Title', 'aura'); ?></label>
-                <input id="aura-solution-case-title" type="text" name="aura_solution_case_study_title" value="<?php echo esc_attr($payload['case_study_title']); ?>">
+                <input id="aura-solution-case-title" type="text" name="aura_solution_case_study_title" value="<?php echo esc_attr($case_study_title); ?>">
             </div>
         </div>
 
         <div class="aura-marketing-field">
             <label for="aura-solution-case-body"><?php esc_html_e('Case Study / Simulation Copy', 'aura'); ?></label>
-            <textarea id="aura-solution-case-body" rows="4" name="aura_solution_case_study_body"><?php echo esc_textarea($payload['case_study_body']); ?></textarea>
+            <?php
+            wp_editor(
+                $case_study_body,
+                'aura-solution-case-body',
+                array(
+                    'textarea_name' => 'aura_solution_case_study_body',
+                    'textarea_rows' => 6,
+                    'media_buttons' => false,
+                    'teeny' => true,
+                    'quicktags' => true,
+                )
+            );
+            ?>
         </div>
     </div>
 
@@ -803,7 +955,7 @@ function aura_render_solution_entry_meta_box($post) {
         'aura-solution-steps',
         __('Implementation Steps', 'aura'),
         __('These steps feed the visible implementation block and HowTo schema.', 'aura'),
-        $payload['implementation_steps'],
+        $steps,
         'aura_solution_steps',
         array(
             array(
@@ -815,7 +967,7 @@ function aura_render_solution_entry_meta_box($post) {
             array(
                 'key' => 'text',
                 'label' => __('Step Description', 'aura'),
-                'type' => 'textarea',
+                'type' => 'richtext',
                 'placeholder' => __('Explain what the reader needs to do in this step.', 'aura'),
             ),
         ),
@@ -826,7 +978,7 @@ function aura_render_solution_entry_meta_box($post) {
         'aura-solution-glossary-links',
         __('Glossary Links', 'aura'),
         __('Link the key terms mentioned on this solution page.', 'aura'),
-        $payload['glossary_links'],
+        $glossary_links,
         'aura_solution_glossary_links',
         array(
             array(
@@ -849,7 +1001,7 @@ function aura_render_solution_entry_meta_box($post) {
         'aura-solution-resource-links',
         __('Related Resources', 'aura'),
         __('Link to pillar pages, guides, or docs relevant to this audience.', 'aura'),
-        $payload['resource_links'],
+        $resource_links,
         'aura_solution_resource_links',
         array(
             array(
@@ -872,7 +1024,7 @@ function aura_render_solution_entry_meta_box($post) {
         'aura-solution-compare-links',
         __('Comparison Links', 'aura'),
         __('Link to evaluation and comparison pages for this buyer profile.', 'aura'),
-        $payload['compare_links'],
+        $compare_links,
         'aura_solution_compare_links',
         array(
             array(
@@ -895,7 +1047,7 @@ function aura_render_solution_entry_meta_box($post) {
         'aura-solution-faqs',
         __('FAQ Block', 'aura'),
         __('These questions are used for both the visible FAQ section and FAQPage schema.', 'aura'),
-        $payload['faqs'],
+        $faqs,
         'aura_solution_faqs',
         array(
             array(
@@ -907,7 +1059,7 @@ function aura_render_solution_entry_meta_box($post) {
             array(
                 'key' => 'answer',
                 'label' => __('Answer', 'aura'),
-                'type' => 'textarea',
+                'type' => 'richtext',
                 'placeholder' => __('Provide a concise operational answer.', 'aura'),
             ),
         ),
@@ -947,7 +1099,7 @@ function aura_render_learn_faq_topic_meta_box($post) {
             array(
                 'key' => 'answer',
                 'label' => __('Answer', 'aura'),
-                'type' => 'textarea',
+                'type' => 'richtext',
                 'placeholder' => __('Provide a concise answer in 2 to 3 sentences.', 'aura'),
             ),
         ),
@@ -971,11 +1123,39 @@ function aura_marketing_sanitize_field_value($value, $type) {
         return '' !== $value ? esc_url_raw($value) : '';
     }
 
-    if ('textarea' === $type) {
-        return sanitize_textarea_field($value);
+    if ('textarea' === $type || 'richtext' === $type) {
+        return wp_kses_post($value);
     }
 
     return sanitize_text_field($value);
+}
+
+/**
+ * Prepare rich text from meta for safe frontend rendering.
+ *
+ * Handles legacy escaped HTML (for example: &lt;p&gt;) and returns
+ * sanitized paragraph-formatted markup.
+ *
+ * @param mixed $value Raw stored value.
+ * @return string
+ */
+function aura_marketing_render_rich_text($value) {
+    $value = is_scalar($value) ? (string) $value : '';
+    $value = trim(wp_unslash($value));
+
+    if ('' === $value) {
+        return '';
+    }
+
+    // Backward compatibility for content previously saved with escaped tags.
+    if (false !== strpos($value, '&lt;') || false !== strpos($value, '&gt;')) {
+        $decoded = html_entity_decode($value, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        if (is_string($decoded) && '' !== trim($decoded)) {
+            $value = $decoded;
+        }
+    }
+
+    return wp_kses_post(wpautop($value));
 }
 
 /**
@@ -1068,7 +1248,7 @@ function aura_save_marketing_page_meta($post_id) {
             return;
         }
 
-        $why_it_matters = isset($_POST['aura_glossary_why_it_matters']) ? aura_marketing_sanitize_field_value($_POST['aura_glossary_why_it_matters'], 'textarea') : '';
+        $why_it_matters = isset($_POST['aura_glossary_why_it_matters']) ? aura_marketing_sanitize_field_value($_POST['aura_glossary_why_it_matters'], 'richtext') : '';
         $how_steps = aura_marketing_collect_repeater_rows(
             isset($_POST['aura_glossary_how_steps']) ? $_POST['aura_glossary_how_steps'] : array(),
             array(
@@ -1120,7 +1300,7 @@ function aura_save_marketing_page_meta($post_id) {
             '_aura_solution_secondary_cta_label' => array('field' => 'aura_solution_secondary_cta_label', 'type' => 'text'),
             '_aura_solution_secondary_cta_url' => array('field' => 'aura_solution_secondary_cta_url', 'type' => 'url'),
             '_aura_solution_case_study_title' => array('field' => 'aura_solution_case_study_title', 'type' => 'text'),
-            '_aura_solution_case_study_body' => array('field' => 'aura_solution_case_study_body', 'type' => 'textarea'),
+            '_aura_solution_case_study_body' => array('field' => 'aura_solution_case_study_body', 'type' => 'richtext'),
         );
 
         foreach ($scalars as $meta_key => $config) {
@@ -1192,6 +1372,193 @@ function aura_save_marketing_page_meta($post_id) {
     }
 }
 add_action('save_post_page', 'aura_save_marketing_page_meta');
+
+/**
+ * Register REST endpoint for glossary page upserts.
+ */
+function aura_register_glossary_sync_rest_routes() {
+    register_rest_route(
+        'dea/v1',
+        '/glossary-sync',
+        array(
+            'methods' => WP_REST_Server::CREATABLE,
+            'callback' => 'aura_rest_glossary_sync_handler',
+            'permission_callback' => function () {
+                return current_user_can('edit_pages');
+            },
+        )
+    );
+}
+add_action('rest_api_init', 'aura_register_glossary_sync_rest_routes');
+
+/**
+ * Resolve a page ID by slug.
+ *
+ * @param string $slug Page slug.
+ * @return int
+ */
+function aura_get_page_id_by_slug($slug) {
+    $slug = sanitize_title((string) $slug);
+    if ('' === $slug) {
+        return 0;
+    }
+
+    $page = get_page_by_path($slug);
+    return ($page instanceof WP_Post) ? (int) $page->ID : 0;
+}
+
+/**
+ * Resolve a page ID by hierarchical path.
+ *
+ * @param string $path Hierarchical page path (for example glossary/policy-dsl).
+ * @return int
+ */
+function aura_get_page_id_by_path($path) {
+    $path = trim((string) $path, "/ \t\n\r\0\x0B");
+    if ('' === $path) {
+        return 0;
+    }
+
+    $page = get_page_by_path($path);
+    return ($page instanceof WP_Post) ? (int) $page->ID : 0;
+}
+
+/**
+ * Handle glossary page sync payload.
+ *
+ * @param WP_REST_Request $request Request object.
+ * @return WP_REST_Response|WP_Error
+ */
+function aura_rest_glossary_sync_handler(WP_REST_Request $request) {
+    $data = $request->get_json_params();
+    $data = is_array($data) ? $data : array();
+
+    $title = isset($data['title']) ? sanitize_text_field((string) $data['title']) : '';
+    $slug = isset($data['slug']) ? sanitize_title((string) $data['slug']) : '';
+    $status = isset($data['status']) ? sanitize_key((string) $data['status']) : 'draft';
+    $require_existing = !isset($data['require_existing']) || (bool) $data['require_existing'];
+    $excerpt = isset($data['excerpt']) ? sanitize_textarea_field((string) $data['excerpt']) : '';
+    $overview_html = isset($data['overview_html']) ? wp_kses_post((string) $data['overview_html']) : '';
+    $why_it_matters = isset($data['why_it_matters']) ? wp_kses_post((string) $data['why_it_matters']) : '';
+    $how_steps = isset($data['how_steps']) && is_array($data['how_steps']) ? $data['how_steps'] : array();
+    $related_entities = isset($data['related_entities']) && is_array($data['related_entities']) ? $data['related_entities'] : array();
+    $further_reading = isset($data['further_reading']) && is_array($data['further_reading']) ? $data['further_reading'] : array();
+    $faqs = isset($data['faqs']) && is_array($data['faqs']) ? $data['faqs'] : array();
+    $target_path = isset($data['target_path']) ? trim((string) $data['target_path']) : '';
+
+    if ('' === $title || '' === $slug) {
+        return new WP_Error('invalid_payload', __('title and slug are required.', 'aura'), array('status' => 400));
+    }
+
+    $parent_id = 0;
+    if (!empty($data['parent_slug'])) {
+        $parent_id = aura_get_page_id_by_slug((string) $data['parent_slug']);
+    }
+
+    $page_id = 0;
+    if ('' !== $target_path) {
+        $page_id = aura_get_page_id_by_path($target_path);
+    }
+    if ($page_id <= 0 && $parent_id > 0) {
+        $page_id = aura_get_page_id_by_path(trim((string) get_post_field('post_name', $parent_id) . '/' . $slug, '/'));
+    }
+    if ($page_id <= 0) {
+        $page_id = aura_get_page_id_by_slug($slug);
+    }
+
+    if ($require_existing && $page_id <= 0) {
+        return new WP_Error(
+            'target_not_found',
+            __('Target glossary page was not found; refusing to create a duplicate.', 'aura'),
+            array('status' => 404)
+        );
+    }
+    $postarr = array(
+        'post_title' => $title,
+        'post_name' => $slug,
+        'post_type' => 'page',
+        'post_status' => in_array($status, array('draft', 'publish', 'pending', 'private'), true) ? $status : 'draft',
+        'post_parent' => $parent_id,
+        'post_excerpt' => $excerpt,
+        'post_content' => $overview_html,
+    );
+
+    if ($page_id > 0) {
+        $postarr['ID'] = $page_id;
+        $result = wp_update_post($postarr, true);
+    } else {
+        $result = wp_insert_post($postarr, true);
+    }
+
+    if (is_wp_error($result)) {
+        return $result;
+    }
+
+    $post_id = (int) $result;
+    update_post_meta($post_id, '_wp_page_template', 'page-glossary-entry.php');
+
+    $normalize_rows = function ($rows, $schema) {
+        $out = array();
+        foreach ($rows as $row) {
+            if (!is_array($row)) {
+                continue;
+            }
+            $normalized = array();
+            $has_value = false;
+            foreach ($schema as $key => $type) {
+                $raw = isset($row[$key]) ? (string) $row[$key] : '';
+                if ('url' === $type) {
+                    $value = '' !== trim($raw) ? esc_url_raw(trim($raw)) : '';
+                } elseif ('richtext' === $type) {
+                    $value = wp_kses_post($raw);
+                } else {
+                    $value = sanitize_text_field($raw);
+                }
+                if ('' !== $value) {
+                    $has_value = true;
+                }
+                $normalized[$key] = $value;
+            }
+            if ($has_value) {
+                $out[] = $normalized;
+            }
+        }
+        return $out;
+    };
+
+    aura_marketing_update_meta($post_id, '_aura_glossary_why_it_matters', $why_it_matters);
+    aura_marketing_update_meta(
+        $post_id,
+        '_aura_glossary_how_steps',
+        $normalize_rows($how_steps, array('title' => 'text', 'text' => 'richtext'))
+    );
+    aura_marketing_update_meta(
+        $post_id,
+        '_aura_glossary_related_entities',
+        $normalize_rows($related_entities, array('label' => 'text', 'url' => 'url'))
+    );
+    aura_marketing_update_meta(
+        $post_id,
+        '_aura_glossary_further_reading',
+        $normalize_rows($further_reading, array('label' => 'text', 'url' => 'url'))
+    );
+    aura_marketing_update_meta(
+        $post_id,
+        '_aura_glossary_faqs',
+        $normalize_rows($faqs, array('question' => 'text', 'answer' => 'richtext'))
+    );
+
+    return new WP_REST_Response(
+        array(
+            'ok' => true,
+            'post_id' => $post_id,
+            'slug' => $slug,
+            'url' => get_permalink($post_id),
+            'status' => get_post_status($post_id),
+        ),
+        200
+    );
+}
 
 /**
  * Build breadcrumb JSON-LD structure.
@@ -1638,9 +2005,6 @@ function aura_seed_marketing_child_pages($parent_id, $hub_key) {
 
             if ($page_id) {
                 update_post_meta((int) $page_id, '_wp_page_template', $template);
-                if ('glossary' === $hub_key && !empty($seed_page['excerpt'])) {
-                    update_post_meta((int) $page_id, '_dea_definition', (string) $seed_page['excerpt']);
-                }
             }
 
             continue;
@@ -1650,10 +2014,6 @@ function aura_seed_marketing_child_pages($parent_id, $hub_key) {
         $current_template = (string) get_post_meta($existing_id, '_wp_page_template', true);
         if ($current_template !== $template) {
             update_post_meta($existing_id, '_wp_page_template', $template);
-        }
-
-        if ('glossary' === $hub_key && !empty($seed_page['excerpt']) && '' === trim((string) get_post_meta($existing_id, '_dea_definition', true))) {
-            update_post_meta($existing_id, '_dea_definition', (string) $seed_page['excerpt']);
         }
 
         if ((int) $existing_page->post_parent !== $parent_id) {

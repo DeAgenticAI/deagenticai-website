@@ -86,7 +86,9 @@ get_header();
                             <?php foreach ($payload['faqs'] as $faq) : ?>
                                 <article class="marketing-faq-item">
                                     <h3><?php echo esc_html($faq['question']); ?></h3>
-                                    <p><?php echo esc_html($faq['answer']); ?></p>
+                                    <div class="marketing-body-copy">
+                                        <?php echo function_exists('aura_marketing_render_rich_text') ? aura_marketing_render_rich_text($faq['answer']) : wp_kses_post(wpautop($faq['answer'])); ?>
+                                    </div>
                                 </article>
                             <?php endforeach; ?>
                         </div>

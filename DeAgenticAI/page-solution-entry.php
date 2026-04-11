@@ -187,7 +187,9 @@ get_header();
                                         <span class="marketing-step-number"><?php echo esc_html((string) ($index + 1)); ?></span>
                                         <div>
                                             <h3><?php echo esc_html($step['title']); ?></h3>
-                                            <p><?php echo esc_html($step['text']); ?></p>
+                                            <div class="marketing-body-copy">
+                                                <?php echo function_exists('aura_marketing_render_rich_text') ? aura_marketing_render_rich_text($step['text']) : wp_kses_post(wpautop($step['text'])); ?>
+                                            </div>
                                         </div>
                                     </li>
                                 <?php endforeach; ?>
@@ -199,7 +201,9 @@ get_header();
                         <div class="marketing-section-heading">
                             <h2><?php echo esc_html($payload['case_study_title']); ?></h2>
                         </div>
-                        <p class="marketing-body-copy"><?php echo esc_html($payload['case_study_body']); ?></p>
+                        <div class="marketing-body-copy">
+                            <?php echo function_exists('aura_marketing_render_rich_text') ? aura_marketing_render_rich_text($payload['case_study_body']) : wp_kses_post(wpautop($payload['case_study_body'])); ?>
+                        </div>
                     </section>
 
                     <?php if ($has_faqs) : ?>
@@ -212,7 +216,9 @@ get_header();
                                 <?php foreach ($payload['faqs'] as $faq) : ?>
                                     <article class="marketing-faq-item">
                                         <h3><?php echo esc_html($faq['question']); ?></h3>
-                                        <p><?php echo esc_html($faq['answer']); ?></p>
+                                        <div class="marketing-body-copy">
+                                            <?php echo function_exists('aura_marketing_render_rich_text') ? aura_marketing_render_rich_text($faq['answer']) : wp_kses_post(wpautop($faq['answer'])); ?>
+                                        </div>
                                     </article>
                                 <?php endforeach; ?>
                             </div>

@@ -14,22 +14,6 @@ get_header();
         $page_id = get_the_ID();
         $payload = aura_get_glossary_entry_payload($page_id);
         $breadcrumbs = aura_get_marketing_breadcrumb_items($page_id);
-        $featured_image_html = get_the_post_thumbnail(
-            $page_id,
-            'large',
-            array(
-                'alt' => the_title_attribute(array('echo' => false, 'post' => $page_id)),
-                'loading' => 'eager',
-                'decoding' => 'async',
-                'fetchpriority' => 'high',
-            )
-        );
-        $semantic_triple = function_exists('aura_get_semantic_triple') ? aura_get_semantic_triple() : '';
-        $definition_has_triple = (
-            '' !== $semantic_triple &&
-            '' !== $payload['definition'] &&
-            false !== stripos($payload['definition'], $semantic_triple)
-        );
         $overview_content = trim((string) get_post_field('post_content', $page_id));
         $has_overview_content = '' !== $overview_content;
         if ($has_overview_content && function_exists('aura_is_marketing_seed_stub_content')) {
@@ -99,7 +83,7 @@ get_header();
                 <?php endforeach; ?>
             </nav>
 
-            <section class="marketing-entry-hero">
+            <section class="marketing-entry-hero marketing-entry-hero-glossary">
                 <div class="marketing-entry-copy">
                     <div class="marketing-badge">
                         <span class="marketing-badge-dot"></span>
@@ -112,25 +96,6 @@ get_header();
 
                     <?php if ('' !== $payload['definition']) : ?>
                         <p class="marketing-definition"><?php echo esc_html($payload['definition']); ?></p>
-                    <?php endif; ?>
-
-                    <?php if ('' !== $semantic_triple && !$definition_has_triple) : ?>
-                        <p class="marketing-lead marketing-lead-left"><?php echo esc_html($semantic_triple); ?></p>
-                    <?php endif; ?>
-                </div>
-
-                <div class="marketing-entry-visual">
-                    <?php if ('' !== $featured_image_html) : ?>
-                        <figure class="marketing-featured-media">
-                            <?php echo wp_kses_post($featured_image_html); ?>
-                        </figure>
-                    <?php else : ?>
-                        <div class="marketing-visual-panel">
-                            <div class="marketing-visual-glow"></div>
-                            <div class="marketing-visual-chip"><?php esc_html_e('Definition Surface', 'aura'); ?></div>
-                            <strong><?php the_title(); ?></strong>
-                            <p><?php esc_html_e('Key concepts, control boundaries, and context for this term in the DeAgenticAI architecture.', 'aura'); ?></p>
-                        </div>
                     <?php endif; ?>
                 </div>
             </section>
@@ -173,7 +138,9 @@ get_header();
                                         <span class="marketing-step-number"><?php echo esc_html((string) ($index + 1)); ?></span>
                                         <div>
                                             <h3><?php echo esc_html($step['title']); ?></h3>
-                                            <p><?php echo esc_html($step['text']); ?></p>
+                                            <div class="marketing-body-copy">
+                                                <?php echo function_exists('aura_marketing_render_rich_text') ? aura_marketing_render_rich_text($step['text']) : wp_kses_post(wpautop($step['text'])); ?>
+                                            </div>
                                         </div>
                                     </li>
                                 <?php endforeach; ?>
@@ -186,7 +153,9 @@ get_header();
                             <div class="marketing-section-heading">
                                 <h2><?php esc_html_e('Why does this matter?', 'aura'); ?></h2>
                             </div>
-                            <p class="marketing-body-copy"><?php echo esc_html($payload['why_it_matters']); ?></p>
+                            <div class="marketing-body-copy">
+                                <?php echo function_exists('aura_marketing_render_rich_text') ? aura_marketing_render_rich_text($payload['why_it_matters']) : wp_kses_post(wpautop($payload['why_it_matters'])); ?>
+                            </div>
                         </section>
                     <?php endif; ?>
 
@@ -200,7 +169,9 @@ get_header();
                                 <?php foreach ($payload['faqs'] as $faq) : ?>
                                     <article class="marketing-faq-item">
                                         <h3><?php echo esc_html($faq['question']); ?></h3>
-                                        <p><?php echo esc_html($faq['answer']); ?></p>
+                                        <div class="marketing-body-copy">
+                                            <?php echo function_exists('aura_marketing_render_rich_text') ? aura_marketing_render_rich_text($faq['answer']) : wp_kses_post(wpautop($faq['answer'])); ?>
+                                        </div>
                                     </article>
                                 <?php endforeach; ?>
                             </div>

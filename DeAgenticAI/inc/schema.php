@@ -262,8 +262,8 @@ function dea_glossary_schema() {
     }
 
     $page_id    = (int) get_queried_object_id();
-    $definition = trim( (string) get_post_meta( $page_id, '_dea_definition', true ) );
-    if ( '' === $definition && function_exists( 'aura_get_marketing_page_excerpt' ) ) {
+    $definition = '';
+    if ( function_exists( 'aura_get_marketing_page_excerpt' ) ) {
         $definition = aura_get_marketing_page_excerpt( $page_id, 32 );
     }
     if ( '' === $definition ) {
